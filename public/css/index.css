@@ -1,0 +1,36 @@
+/* Body creates a basic grid with three rows, 1. Title 2. Globe image 3. signupsignin buttons */
+body {
+    height: 100vh;  
+    margin: 0;
+    display: grid;
+    grid-template-rows: 1fr 1fr 1fr;
+    grid-template-columns: 1fr; 
+    justify-items: center; 
+    align-items: center;   
+    text-align: center;
+}
+
+h1 {
+    grid-row: 1;
+}
+
+#icon {
+    grid-row: 2;
+}
+
+/* Aligns the buttons one above the other */
+#signupsignin {
+    grid-row: 3;
+
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    gap: 10pt;
+    place-items: center;
+}
+
+/** EDIT LATER, placeholder size before everything is set in stone. */
+#signin,
+#signup {
+    padding: 10pt 20pt;
+    width: 200px;
+}

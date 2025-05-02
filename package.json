@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "express": "^5.1.0",
+    "express-session": "^1.18.1",
+    "express-sessions": "^1.0.1",
+    "mongodb": "^6.16.0",
+    "node": "^22.15.0"
+  }
+}
