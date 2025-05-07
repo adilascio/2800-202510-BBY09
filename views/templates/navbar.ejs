@@ -1,0 +1,57 @@
+<nav
+  class="navbar fixed-bottom bg-white"
+  style="box-shadow: 0 -4px 8px rgba(0,0,0,0.1);"
+>
+    <div class="d-flex w-100 justify-content-around">
+  
+      <!-- Messages Tab -->
+      <button
+        class="btn py-2 <%= activeTab === 'messages' ? 'text-primary' : '' %>"
+        aria-label="Messages"
+      >
+        <% if (activeTab === 'messages') { %>
+          <img src="/svgs/chat-left-text-fill.svg" width="24" height="24" alt="Messages (active)">
+        <% } else { %>
+          <img src="/svgs/chat-left-text.svg" width="24" height="24" alt="Messages">
+        <% } %>
+      </button>
+  
+      <!-- Learning Tab -->
+      <button
+        class="btn py-2 <%= activeTab === 'learning' ? 'text-primary' : '' %>"
+        aria-label="Learning"
+      >
+        <% if (activeTab === 'learning') { %>
+          <img src="/svgs/mortarboard-fill.svg" width="32" height="29" alt="Learning (active)">
+        <% } else { %>
+          <img src="/svgs/mortarboard.svg" width="32" height="29" alt="Learning">
+        <% } %>
+      </button>
+  
+      <!-- Puzzles Tab -->
+      <button
+        class="btn py-2 <%= activeTab === 'puzzles' ? 'text-primary' : '' %>"
+        aria-label="Puzzles"
+      >
+        <% if (activeTab === 'puzzles') { %>
+          <img src="/svgs/puzzle-fill.svg" width="24" height="24" alt="Puzzles (active)">
+        <% } else { %>
+          <img src="/svgs/puzzle.svg" width="29" height="29" alt="Puzzles">
+        <% } %>
+      </button>
+  
+      <!-- Home Tab -->
+      <button
+        class="btn py-2 <%= activeTab === 'home' ? 'text-primary' : '' %>"
+        aria-label="Home"
+      >
+        <% if (activeTab === 'home') { %>
+          <img src="/svgs/house-fill.svg" width="24" height="24" alt="Home (active)">
+        <% } else { %>
+          <img src="/svgs/house.svg" width="27" height="27" alt="Home">
+        <% } %>
+      </button>
+  
+    </div>
+  </nav>
+  
