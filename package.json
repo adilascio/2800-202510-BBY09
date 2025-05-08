@@ -1,11 +1,23 @@
 {
+  "name": "lingolink-app",
+  "version": "1.0.0",
+  "description": "A modular Node.js app using MongoDB Atlas and hosted on Render.",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
   "dependencies": {
     "dotenv": "^16.5.0",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "express-session": "^1.18.1",
     "express-sessions": "^1.0.1",
-    "mongodb": "^6.16.0",
-    "node": "^22.15.0"
-  }
+    "mongodb": "^6.16.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [],
+  "author": "Kevin Tran",
+  "license": "MIT"
 }
