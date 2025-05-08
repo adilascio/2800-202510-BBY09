@@ -1,0 +1,62 @@
+body {
+    background: #fefefe;
+    font-family: 'Segoe UI', sans-serif;
+    padding-bottom: 50px;
+  }
+
+  .title {
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: #4c4cff;
+  }
+
+  .subtitle {
+    font-size: 1.1rem;
+    color: #6c757d;
+  }
+
+  .search-bar input {
+    border-radius: 50px;
+    border: 2px solid #cbd5e0;
+    padding: 0.75rem 1.25rem;
+    font-size: 1rem;
+  }
+
+  .search-bar input:focus {
+    border-color: #4c4cff;
+    box-shadow: 0 0 0 0.2rem rgba(76, 76, 255, 0.2);
+  }
+
+  .friend-card {
+    background: linear-gradient(to right, #f3f9ff, #fff);
+    border: 2px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 20px;
+    transition: all 0.3s ease-in-out;
+  }
+
+  .friend-card:hover {
+    transform: translateY(-5px);
+    border-color: #4c4cff;
+    box-shadow: 0 8px 20px rgba(76, 76, 255, 0.15);
+  }
+
+  .friend-avatar {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .badge {
+    font-size: 0.85rem;
+    padding: 0.4em 0.75em;
+    border-radius: 50px;
+  }
+
+  .friend-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
