@@ -1,49 +1,71 @@
-const bcrypt = require('bcrypt');
+const express = require('express');
+const bcrypt = require('bcryptjs');
 const Joi = require('joi');
-const { connectToDatabase } = require('./database');
+const { connectToDatabase } = require('./database.js');
 
-let usersCollection;
+const router = express.Router();
 
-// Immediately connect to DB and cache the collection
+let users;
 (async () => {
-  try {
-    const { users } = await connectToDatabase();
-    usersCollection = users;
-  } catch (err) {
-    console.error("Failed to init DB in auth.js:", err);
-  }
+  const db = await connectToDatabase();
+  users = db.users;
 })();
 
-const saltRounds = 12;
 
-// Register new user
-async function registerUser(email, password) {
+// Signup route
+router.post('/signup', async (req, res) => {
   const schema = Joi.object({
     email: Joi.string().email().required(),
-    password: Joi.string().min(6).max(20).required()
+    password: Joi.string().min(6).max(20).required(),
   });
 
-  const { error } = schema.validate({ email, password });
-  if (error) return { success: false, message: error.details[0].message };
+  const { error } = schema.validate(req.body);
+  if (error) return res.send(error.message);
 
-  const existing = await usersCollection.findOne({ email });
-  if (existing) return { success: false, message: "Email already registered." };
+  const existingUser = await users.findOne({ email: req.body.email });
+  if (existingUser) return res.send("Email already registered.");
 
-  const hashedPassword = await bcrypt.hash(password, saltRounds);
-  await usersCollection.insertOne({ email, password: hashedPassword });
+  const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
-  return { success: true, message: "Registration successful." };
-}
+  await users.insertOne({
+    email: req.body.email,
+    password: hashedPassword,
+  });
 
-// Login existing user
-async function loginUser(email, password) {
-  const user = await usersCollection.findOne({ email });
-  if (!user) return { success: false, message: "Email not found." };
+  res.redirect('/login');
+});
 
-  const match = await bcrypt.compare(password, user.password);
-  if (!match) return { success: false, message: "Incorrect password." };
+// Login route
+router.post('/login', async (req, res) => {
+  const schema = Joi.object({
+    email: Joi.string().email().required(),
+    password: Joi.string().required(),
+  });
 
-  return { success: true, user };
-}
+  const { error } = schema.validate(req.body);
+  if (error) return res.send(error.message);
 
-module.exports = { registerUser, loginUser };
+  const user = await users.findOne({ email: req.body.email });
+  if (!user) return res.send("Invalid email or password.");
+
+  const passwordMatch = await bcrypt.compare(req.body.password, user.password);
+  if (!passwordMatch) return res.send("Invalid email or password.");
+
+  req.session.user = {
+    email: user.email
+  };
+
+  res.redirect('/messages');
+});
+
+// Logout
+router.get('/logout', (req, res) => {
+  req.session.destroy(err => {
+    if (err) {
+      console.error("Logout error:", err);
+    }
+    res.redirect('/');
+  });
+});
+
+module.exports = router;
