@@ -110,22 +110,33 @@ app.post('/signup', async (req, res) => {
     nativeLanguage: req.body.nativeLanguage
   });
 
-  req.session.user = { name: `${req.body.firstName} ${req.body.lastName}`, email: req.body.email };
+  // Set user session
+  req.session.user = {
+    name: `${req.body.firstName} ${req.body.lastName}`,
+    email: req.body.email
+  };
+
+  // ✅ Set one-time flag for SweetAlert
+  req.session.showProfilePrompt = true;
+
   res.redirect('/home');
 });
 
-app.get('/home', requireLogin, (req, res) => {
+
+app.get('/home', (req, res) => {
+  if (!req.session.user) return res.redirect('/login');
+
+  const showProfilePrompt = req.session.showProfilePrompt;
+  req.session.showProfilePrompt = false;
+
   res.render('home', {
     pageTitle: 'LingoLink Home',
-    user: req.session.user
+    user: req.session.user,
+    activeTab: 'home',
+    showProfilePrompt
   });
 });
 
-// Authenticated Home Page
-app.get('/home', (req, res) => {
-  if (!req.session.user) return res.redirect('/login');
-  res.render('home', { user: req.session.user, activeTab: 'home' });
-});
 
 // Friends Page
 app.get('/friends', (req, res) => {
@@ -139,6 +150,23 @@ app.get('/friends', (req, res) => {
   res.render('friends', { friends, activeTab: 'none' });
 });
 
+app.get('/profile', (req, res) => {
+  if (!req.session.user) return res.redirect('/login');
+  res.render('profile', { user: req.session.user });
+});
+
+app.post('/profile', async (req, res) => {
+  await usersCollection.updateOne(
+    { email: req.session.user.email },
+    {
+      $set: {
+        nativeLanguage: req.body.nativeLanguage,
+        targetLanguage: req.body.targetLanguage
+      }
+    }
+  );
+  res.redirect('/home');
+});
 
 app.get('/logout', (req, res) => {
   req.session.destroy();
