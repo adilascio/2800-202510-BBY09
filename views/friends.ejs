@@ -16,9 +16,13 @@
       <p class="subtitle">Search and connect with people you know</p>
       <div class="search-bar mt-3 mx-auto" style="max-width: 400px;">
         <input type="text" class="form-control" id="searchInput" placeholder="Search by name..." onkeyup="filterFriends()">
-        <p class="subtitle">Suggested Buddies</p>
       </div>
     </div>
+
+      <!-- Left-aligned Suggested Buddies label -->
+      <div class="mb-3">
+        <h5 class="fw-semibold">Suggested Buddies</h5>
+      </div>
 
     <div class="friend-list" id="friendList">
       <% friends.forEach(friend => { %>
