@@ -89,7 +89,7 @@ app.post('/signup', async (req, res) => {
   const schema = Joi.object({
     firstName: Joi.string().max(30).required(),
     lastName: Joi.string().max(30).required(),
-    nativeLanguage: Joi.string().required(),
+    username: Joi.string().required(),
     email: Joi.string().email().required(),
     password: Joi.string().min(6).max(30).required()
   });
@@ -107,18 +107,16 @@ app.post('/signup', async (req, res) => {
     name: `${req.body.firstName} ${req.body.lastName}`,
     email: req.body.email,
     password: hashedPassword,
-    nativeLanguage: req.body.nativeLanguage
+    username: req.body.username
   });
 
-  // Set user session
   req.session.user = {
     name: `${req.body.firstName} ${req.body.lastName}`,
-    email: req.body.email
+    email: req.body.email,
+    username: req.body.username
   };
 
-  // ✅ Set one-time flag for SweetAlert
   req.session.showProfilePrompt = true;
-
   res.redirect('/home');
 });
 
@@ -139,21 +137,51 @@ app.get('/home', (req, res) => {
 
 
 // Friends Page
-app.get('/friends', (req, res) => {
+app.get('/friends', async (req, res) => {
   if (!req.session.user) return res.redirect('/login');
 
-  // Dummy data for now
-  const friends = [
-    { name: 'Alice', username: 'alice123', avatar: '/img/user1.png' },
-    { name: 'Bob', username: 'bob456', avatar: '/img/user2.png' }
-  ];
+  const currentUser = await usersCollection.findOne({ email: req.session.user.email });
+
+  if (!currentUser || !currentUser.nativeLanguage || !currentUser.targetLanguage) {
+    return res.render('friends', { friends: [], activeTab: 'none' });
+  }
+
+  const matches = await usersCollection.find({
+    email: { $ne: currentUser.email },
+    nativeLanguage: currentUser.targetLanguage,
+    targetLanguage: currentUser.nativeLanguage
+  }).toArray();
+
+  const friends = matches.map(user => ({
+    name: user.name,
+    username: user.username,
+    avatar: '/img/user1.png', // static or dynamic later
+    description: `Learning ${user.targetLanguage}, Good at ${user.nativeLanguage}`
+  }));
+
   res.render('friends', { friends, activeTab: 'none' });
 });
 
-app.get('/profile', (req, res) => {
+
+const languages = ["Afrikaans", "Albanian", "Amharic", "Arabic", "Armenian", "Bengali", "Bosnian",
+      "Bulgarian", "Burmese", "Catalan", "Chinese", "Croatian", "Czech", "Danish",
+      "Dutch", "English", "Estonian", "Filipino", "Finnish", "French", "German", 
+      "Greek", "Gujarati", "Hebrew", "Hindi", "Hungarian", "Icelandic", "Indonesian",
+      "Italian", "Japanese", "Kannada", "Kazakh", "Khmer", "Korean", "Lao", "Latvian", 
+      "Lithuanian", "Macedonian", "Malay", "Malayalam", "Marathi", "Mongolian", 
+      "Nepali", "Norwegian", "Pashto", "Persian", "Polish", "Portuguese", "Punjabi", 
+      "Romanian", "Russian", "Serbian", "Sinhala", "Slovak", "Slovenian", "Spanish", 
+      "Swahili", "Swedish", "Tamil", "Telugu", "Thai", "Turkish", "Ukrainian", "Urdu", 
+      "Uzbek", "Vietnamese", "Zulu"];
+
+app.get('/profile', async (req, res) => {
   if (!req.session.user) return res.redirect('/login');
-  res.render('profile', { user: req.session.user });
+
+  const user = await usersCollection.findOne({ email: req.session.user.email });
+
+  res.render('profile', { user, languages });
 });
+
 
 app.post('/profile', async (req, res) => {
   await usersCollection.updateOne(
@@ -161,11 +189,12 @@ app.post('/profile', async (req, res) => {
     {
       $set: {
         nativeLanguage: req.body.nativeLanguage,
-        targetLanguage: req.body.targetLanguage
+        targetLanguage: req.body.targetLanguage,
+        username: req.body.username
       }
     }
   );
-  res.redirect('/home');
+  res.redirect('/profile?updated=true');
 });
 
 app.get('/logout', (req, res) => {

@@ -13,32 +13,65 @@
       <label for="name" class="form-label">Name</label>
       <input type="text" class="form-control" name="name" value="<%= user.name %>" readonly>
     </div>
+  
     <div class="mb-3">
       <label for="email" class="form-label">Email</label>
       <input type="email" class="form-control" name="email" value="<%= user.email %>" readonly>
     </div>
-
-      <div class="mb-3">
-        <label class="form-label">Native Language</label>
-        <select class="form-select" name="nativeLanguage" id="autoSizingSelect" required>
-            <option selected disabled>Choose...</option>
-            <!-- Options filled by populateLanguage.js -->
-        </select>
-    </div>
-
+  
     <div class="mb-3">
-        <label class="form-label">Language You Want To Learn</label>
-        <select class="form-select" name="TargetLanguage" id="autoSizingSelect" required>
-            <option selected disabled>Choose...</option>
-            <!-- Options filled by populateLanguage.js -->
-        </select>
+      <label for="username" class="form-label">Username</label>
+      <input type="text" class="form-control" name="username" value="<%= user.username || '' %>" required>
+    </div>
+  
+    <div class="mb-3">
+      <label class="form-label">Native Language </label>
+      <<select name="nativeLanguage" class="form-select language-dropdown" required>
+        <option disabled <%= !user.nativeLanguage ? 'selected' : '' %>>Choose...</option>
+        <% languages.forEach(lang => { %>
+          <option value="<%= lang %>" <%= user.nativeLanguage === lang ? 'selected' : '' %>><%= lang %></option>
+        <% }) %>
+      </select>
+    </div>
+  
+    <div class="mb-3">
+      <label class="form-label">Language You Want To Learn</label>
+      <select name="targetLanguage" class="form-select language-dropdown" required>
+    <option disabled <%= !user.targetLanguage ? 'selected' : '' %>>Choose...</option>
+    <% languages.forEach(lang => { %>
+      <option value="<%= lang %>" <%= user.targetLanguage === lang ? 'selected' : '' %>><%= lang %></option>
+    <% }) %>
+  </select>
+    </div>
+  
+    <button type="submit" class="btn btn-success">Save Profile</button>
   </form>
-
+  
       <!-- Logout -->
       <form action="/logout" method="GET" style="display:inline; position: absolute; bottom: 20px; right: 20px; ">
         <button class="btn btn-outline-danger btn-sm">Logout</button>
       </form>
 </body>
 
-    <script src="/js/populateLanguage.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('updated') === 'true') {
+    Swal.fire({
+      title: "Do you want to save the changes?",
+      showDenyButton: true,
+      showCancelButton: true,
+      confirmButtonText: "Save",
+      denyButtonText: `Don't save`
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire("Saved!", "", "success");
+      } else if (result.isDenied) {
+        Swal.fire("Changes are not saved", "", "info");
+      }
+    });
+  }
+</script>
+
+<script src="/js/populateLanguage.js"></script>
 </html>
