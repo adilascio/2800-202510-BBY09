@@ -1,22 +1,24 @@
-require('dotenv').config(); // Load .env
-
-const PORT = process.env.PORT || 8000;
+// app.js (updated with login + signup + EJS rendering + validation)
+require('dotenv').config();
 const express = require('express');
-const app = express();
 const session = require('express-session');
 const path = require('path');
-const { connectToDatabase } = require('./database'); // <- using your database.js
+const Joi = require('joi');
+const bcrypt = require('bcryptjs');
+const { connectToDatabase } = require('./database');
+
+const PORT = process.env.PORT || 8000;
+const app = express();
 
 let db, usersCollection;
 
-// Initialize MongoDB connection before starting the server
+// MongoDB connection
 (async () => {
   try {
     const dbResult = await connectToDatabase();
     db = dbResult.db;
     usersCollection = dbResult.users;
 
-    // Start server *after* DB is connected
     app.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}`);
     });
@@ -25,31 +27,107 @@ let db, usersCollection;
   }
 })();
 
-// Public folders statically served.
+// Middleware
 app.use(express.static(path.join(__dirname, 'public')));
-
-// Using express to view ejs files
+app.use(express.urlencoded({ extended: true }));
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'temp-secret',
+  resave: false,
+  saveUninitialized: false
+}));
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
-// Public routes
-app.get('/',         (req, res) => res.render('index',   { pageTitle: 'Welcome' }));
-app.get('/login',    (req, res) => res.render('login',   { pageTitle: 'Log In'  }));
-app.get('/signup',   (req, res) => res.render('signup',  { pageTitle: 'Sign Up' }));
+function requireLogin(req, res, next) {
+  if (!req.session.user) return res.redirect('/login');
+  next();
+}
 
+// Routes
 app.get('/', (req, res) => {
-  if (req.session.user) {
-    res.redirect('/members');
-  } else {
-    res.sendFile(__dirname + '/landing.ejs');
+  if (req.session.user) return res.redirect('/home');
+  res.render('index', { pageTitle: 'Welcome' });
+});
+
+app.get('/login', (req, res) => {
+  res.render('login', { pageTitle: 'Log In', errorMessage: null });
+});
+
+app.post('/login', async (req, res) => {
+  const schema = Joi.object({
+    email: Joi.string().email().required(),
+    password: Joi.string().required()
+  });
+
+  const { error } = schema.validate(req.body);
+  if (error) {
+    return res.status(400).render('login', {
+      pageTitle: 'Log In',
+      errorMessage: 'Invalid input format.'
+    });
   }
+
+  const user = await usersCollection.findOne({ email: req.body.email });
+  if (!user || !(await bcrypt.compare(req.body.password, user.password))) {
+    return res.status(401).render('login', {
+      pageTitle: 'Log In',
+      errorMessage: 'Incorrect email or password.'
+    });
+  }
+
+  req.session.user = { name: user.name, email: user.email };
+  res.redirect('/home');
 });
 
-// Private routes (NEEDS AUTH GUARD after db setup)
-app.get('/messages', (req, res) => res.render('messages', { pageTitle: 'Messages' }));
-app.get('/dashboard', (req, res) => res.render('dashboard', { pageTitle: 'Dashboard' }));
+app.get('/signup', (req, res) => {
+  res.render('signup', { pageTitle: 'Sign Up', errorMessage: null });
+});
 
-// 404 handler (optional)
+app.post('/signup', async (req, res) => {
+  console.log('Form submitted:', req.body);
+
+  const schema = Joi.object({
+    firstName: Joi.string().max(30).required(),
+    lastName: Joi.string().max(30).required(),
+    nativeLanguage: Joi.string().required(),
+    email: Joi.string().email().required(),
+    password: Joi.string().min(6).max(30).required()
+  });
+
+  const { error } = schema.validate(req.body);
+  if (error) {
+    return res.status(400).render('signup', {
+      pageTitle: 'Sign Up',
+      errorMessage: 'Invalid input. Please try again.'
+    });
+  }
+
+  const hashedPassword = await bcrypt.hash(req.body.password, 12);
+  await usersCollection.insertOne({
+    name: `${req.body.firstName} ${req.body.lastName}`,
+    email: req.body.email,
+    password: hashedPassword,
+    nativeLanguage: req.body.nativeLanguage
+  });
+
+  req.session.user = { name: `${req.body.firstName} ${req.body.lastName}`, email: req.body.email };
+  res.redirect('/home');
+});
+
+app.get('/home', requireLogin, (req, res) => {
+  res.render('home', {
+    pageTitle: 'LingoLink Home',
+    user: req.session.user
+  });
+});
+
+app.get('/logout', (req, res) => {
+  req.session.destroy();
+  res.redirect('/');
+});
+
+// 404
 app.use((req, res) => {
-  res.status(404).render('404', { pageTitle: 'Page Not Found' });
+  res.status(404).render('404', { pageTitle: 'Not Found' });
 });
+``
