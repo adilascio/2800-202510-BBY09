@@ -1,26 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <title>Home</title>
   <link rel="stylesheet" href="/css/index.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" />
 </head>
+
 <body>
   <header class="d-flex justify-content-between align-items-center p-3 border-bottom">
     <h4 class="m-0">Hi, <%= user.name %>!</h4>
-    
-    <div>
-      <!-- Add Friend Icon -->
-      <a href="/friends" class="btn btn-link p-0 me-3" title="Find Friends">
-        <img src="/svgs/person-plus.svg" width="28" alt="Add Friend" />
-      </a>
 
-      <!-- Logout -->
-      <form action="/logout" method="GET" style="display:inline;">
-        <button class="btn btn-outline-danger btn-sm">Logout</button>
-      </form>
+    <div>
+      <!-- Add Friend Icon Top Right -->
+      <a href="/friends" style="position: absolute; top: 20px; right: 20px;" title="Add Friend">
+        <img src="/svgs/add-friend.svg" alt="Add Friend" width="30" height="30">
+      </a>
     </div>
+  
+    <div>
+      <a href="/profile" style="position: absolute; top: 20px; left: 20px;" title="Create Your Profile">
+        <img src="/svgs/profile.svg" alt="Create Your Profile" width="30" height="30">
+      </a>
+    </div>
+
   </header>
 
   <main class="container text-center mt-5">
@@ -30,4 +34,23 @@
   <!-- Persistent Nav Bar -->
   <%- include('templates/navbar', { activeTab: 'home' }) %>
 </body>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<% if (showProfilePrompt) { %>
+  <script>
+    Swal.fire({
+      title: "Create Your Profile",
+      text: "Would you like to create your profile now?",
+      icon: "info",
+      showCancelButton: true,
+      confirmButtonText: "Create Profile",
+      cancelButtonText: "Later"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        window.location.href = "/profile";
+      }
+    });
+  </script>
+<% } %>
+
 </html>
