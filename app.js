@@ -37,6 +37,14 @@ app.get('/',         (req, res) => res.render('index',   { pageTitle: 'Welcome' 
 app.get('/login',    (req, res) => res.render('login',   { pageTitle: 'Log In'  }));
 app.get('/signup',   (req, res) => res.render('signup',  { pageTitle: 'Sign Up' }));
 
+app.get('/', (req, res) => {
+  if (req.session.user) {
+    res.redirect('/members');
+  } else {
+    res.sendFile(__dirname + '/landing.ejs');
+  }
+});
+
 // Private routes (NEEDS AUTH GUARD after db setup)
 app.get('/messages', (req, res) => res.render('messages', { pageTitle: 'Messages' }));
 app.get('/dashboard', (req, res) => res.render('dashboard', { pageTitle: 'Dashboard' }));
