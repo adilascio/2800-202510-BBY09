@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Home</title>
+  <link rel="stylesheet" href="/css/index.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" />
+</head>
+<body>
+  <header class="d-flex justify-content-between align-items-center p-3 border-bottom">
+    <h4 class="m-0">Hi, <%= user.name %>!</h4>
+    
+    <div>
+      <!-- Add Friend Icon -->
+      <a href="/friends" class="btn btn-link p-0 me-3" title="Find Friends">
+        <img src="/svgs/person-plus.svg" width="28" alt="Add Friend" />
+      </a>
+
+      <!-- Logout -->
+      <form action="/logout" method="GET" style="display:inline;">
+        <button class="btn btn-outline-danger btn-sm">Logout</button>
+      </form>
+    </div>
+  </header>
+
+  <main class="container text-center mt-5">
+    <p class="lead">Welcome to your LingoLink dashboard. Use the tabs below to get started.</p>
+  </main>
+
+  <!-- Persistent Nav Bar -->
+  <%- include('templates/navbar', { activeTab: 'home' }) %>
+</body>
+</html>
