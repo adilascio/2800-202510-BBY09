@@ -121,6 +121,25 @@ app.get('/home', requireLogin, (req, res) => {
   });
 });
 
+// Authenticated Home Page
+app.get('/home', (req, res) => {
+  if (!req.session.user) return res.redirect('/login');
+  res.render('home', { user: req.session.user, activeTab: 'home' });
+});
+
+// Friends Page
+app.get('/friends', (req, res) => {
+  if (!req.session.user) return res.redirect('/login');
+
+  // Dummy data for now
+  const friends = [
+    { name: 'Alice', username: 'alice123', avatar: '/img/user1.png' },
+    { name: 'Bob', username: 'bob456', avatar: '/img/user2.png' }
+  ];
+  res.render('friends', { friends, activeTab: 'none' });
+});
+
+
 app.get('/logout', (req, res) => {
   req.session.destroy();
   res.redirect('/');
@@ -131,3 +150,4 @@ app.use((req, res) => {
   res.status(404).render('404', { pageTitle: 'Not Found' });
 });
 ``
+
