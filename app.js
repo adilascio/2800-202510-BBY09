@@ -150,26 +150,44 @@ app.get('/friends', async (req, res) => {
   if (!req.session.user) return res.redirect('/login');
 
   const currentUser = await usersCollection.findOne({ email: req.session.user.email });
+  const search = req.query.search?.trim();
 
-  if (!currentUser || !currentUser.nativeLanguage || !currentUser.targetLanguage) {
-    return res.render('friends', { friends: [], activeTab: 'none' });
+  let query = {
+    email: { $ne: currentUser.email }
+  };
+
+  if (search) {
+    query.$or = [
+      { name: { $regex: new RegExp(search, 'i') } },
+      { username: { $regex: new RegExp(search, 'i') } }
+    ];
+  } else {
+    // If no search, show suggested matches only
+    if (currentUser?.nativeLanguage && currentUser?.targetLanguage) {
+      query.nativeLanguage = currentUser.targetLanguage;
+      query.targetLanguage = currentUser.nativeLanguage;
+    } else {
+      return res.render('friends', { friends: [], searchQuery: '', showSuggested: true });
+    }
   }
 
-  const matches = await usersCollection.find({
-    email: { $ne: currentUser.email },
-    nativeLanguage: currentUser.targetLanguage,
-    targetLanguage: currentUser.nativeLanguage
-  }).toArray();
+  const matches = await usersCollection.find(query).toArray();
 
   const friends = matches.map(user => ({
     name: user.name,
     username: user.username,
-    avatar: '/img/user1.png', // static or dynamic later
+    avatar: '/img/user1.png',
     description: `Learning ${user.targetLanguage}, Good at ${user.nativeLanguage}`
   }));
 
-  res.render('friends', { friends, activeTab: 'none' });
+  res.render('friends', {
+    friends,
+    searchQuery: search || '',
+    showSuggested: !search
+  });
 });
+
+
 
 
 const languages = ["Afrikaans", "Albanian", "Amharic", "Arabic", "Armenian", "Bengali", "Bosnian",
