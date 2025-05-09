@@ -25,7 +25,7 @@
     </div>
   
     <div class="mb-3">
-      <label class="form-label">Native Language </label>
+      <label class="form-label">Native Language</label>
       <<select name="nativeLanguage" class="form-select language-dropdown" required>
         <option disabled <%= !user.nativeLanguage ? 'selected' : '' %>>Choose...</option>
         <% languages.forEach(lang => { %>
