@@ -61,15 +61,15 @@ app.post('/login', async (req, res) => {
 
   const { error } = schema.validate(req.body);
   if (error) {
-    return res.status(400).render('login', {
+    return res.render('login', {
       pageTitle: 'Log In',
-      errorMessage: 'Invalid input format.'
+      errorMessage: 'Invalid email or password format.'
     });
   }
 
   const user = await usersCollection.findOne({ email: req.body.email });
   if (!user || !(await bcrypt.compare(req.body.password, user.password))) {
-    return res.status(401).render('login', {
+    return res.render('login', {
       pageTitle: 'Log In',
       errorMessage: 'Incorrect email or password.'
     });
@@ -96,9 +96,17 @@ app.post('/signup', async (req, res) => {
 
   const { error } = schema.validate(req.body);
   if (error) {
-    return res.status(400).render('signup', {
+    return res.render('signup', {
       pageTitle: 'Sign Up',
-      errorMessage: 'Invalid input. Please try again.'
+      errorMessage: 'Invalid input. Password must be 6-30 characters.'
+    });
+  }
+
+  const existingUser = await usersCollection.findOne({ username: req.body.username });
+  if (existingUser) {
+    return res.render('signup', {
+      pageTitle: 'Sign Up',
+      errorMessage: 'Username already taken. Please choose another.'
     });
   }
 
@@ -119,6 +127,7 @@ app.post('/signup', async (req, res) => {
   req.session.showProfilePrompt = true;
   res.redirect('/home');
 });
+
 
 
 app.get('/home', (req, res) => {
