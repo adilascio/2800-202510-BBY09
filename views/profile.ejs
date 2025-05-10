@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Your Profile</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/profile.css">
+  <style>
+  /* target that <span id="flag-emoji"> you already made */
+  #flag-emoji {
+    font-family: "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
+    font-size: 1.2em;   /* or whatever size fits */
+  }
+</style>
+
+</head>
+<body class="container py-5">
+  <h2 class="mb-4">Complete Your Profile</h2>
+  <form action="/profile" method="POST">
+    <div class="mb-3">
+      <label for="name" class="form-label">Name</label>
+      <input type="text" class="form-control" name="name" value="<%= user.name %>" readonly>
+    </div>
+  
+    <div class="mb-3">
+      <label for="email" class="form-label">Email</label>
+      <input type="email" class="form-control" name="email" value="<%= user.email %>" readonly>
+    </div>
+  
+    <div class="mb-3">
+      <label for="username" class="form-label">Username</label>
+      <input type="text" class="form-control" name="username" value="<%= user.username || '' %>" required>
+    </div>
+  
+        <div class="mb-3">
+          <label class="form-label">Location: <h5 id="location"><span id="flag-emoji" class="ms-2"></span>
+            Detecting location…</h5><h7 style="display: none;">Language:<p id="language"></p></h7></label>
+        </div>
+    
+        <div class="mb-3">
+          <label class="form-label">Native Language </label>
+          <select name="nativeLanguage" class="form-select language-dropdown" required>
+              <option <%= !user.nativeLanguage ? 'selected' : '' %>>Choose</option>
+            <% languages.forEach(lang => { %>
+              <option value="<%= lang %>" <%= user.nativeLanguage === lang ? 'selected' : '' %>><%= lang %></option>
+            <% }) %>
+          </select>
+        </div>
+  
+    <div class="mb-3">
+      <label class="form-label">Language You Want To Learn</label>
+      <select name="targetLanguage" class="form-select language-dropdown" required>
+    <option disabled <%= !user.targetLanguage ? 'selected' : '' %>>Choose...</option>
+    <% languages.forEach(lang => { %>
+      <option value="<%= lang %>" <%= user.targetLanguage === lang ? 'selected' : '' %>><%= lang %></option>
+    <% }) %>
+  </select>
+    </div>
+  
+    <button type="submit" class="btn btn-success">Save Profile</button>
+  </form>
+  
+      <!-- Logout -->
+      <form action="/logout" method="GET" style="display:inline; position: absolute; bottom: 20px; right: 20px; ">
+        <button class="btn btn-outline-danger btn-sm">Logout</button>
+      </form>
+</body>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('updated') === 'true') {
+    Swal.fire({
+      title: "Do you want to save the changes?",
+      showDenyButton: true,
+      showCancelButton: true,
+      confirmButtonText: "Save",
+      denyButtonText: `Don't save`
+    }).then((result) => {
+      if (result.isConfirmed) {
+        Swal.fire("Saved!", "", "success");
+      } else if (result.isDenied) {
+        Swal.fire("Changes are not saved", "", "info");
+      }
+    });
+  }
+</script>
+
+
+<script src="js/profile.js"></script>
+
+</html>

@@ -1,0 +1,32 @@
+/* Center the form vertically and horizontally */
+body {
+    background-color: #f8f9fa;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  /* Wrapper for consistent layout */
+  .login-wrapper {
+    width: 100%;
+    max-width: 400px;
+    padding: 1rem;
+  }
+  
+  /* The card-like login form */
+  .login-card {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+  }
+  
+  /* Optional hover effect on button */
+  button[type="submit"]:hover {
+    opacity: 0.95;
+  }
+  
