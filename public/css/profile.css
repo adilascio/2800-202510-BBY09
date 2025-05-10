@@ -1,0 +1,9 @@
+
+.flag-emoji {
+  font-family: "Segoe UI Emoji", "Apple Color Emoji", sans-serif;
+}
+
+ #flag-emoji {
+    font-family: "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
+    font-size: 1.2em;   /* or whatever size fits */
+  }

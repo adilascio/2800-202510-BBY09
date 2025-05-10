@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Create Your Profile</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/profile.css">
+  <style>
+  /* target that <span id="flag-emoji"> you already made */
+  #flag-emoji {
+    font-family: "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
+    font-size: 1.2em;   /* or whatever size fits */
+  }
+</style>
+
 </head>
 <body class="container py-5">
   <h2 class="mb-4">Complete Your Profile</h2>
@@ -24,15 +33,20 @@
       <input type="text" class="form-control" name="username" value="<%= user.username || '' %>" required>
     </div>
   
-    <div class="mb-3">
-      <label class="form-label">Native Language</label>
-      <<select name="nativeLanguage" class="form-select language-dropdown" required>
-        <option disabled <%= !user.nativeLanguage ? 'selected' : '' %>>Choose...</option>
-        <% languages.forEach(lang => { %>
-          <option value="<%= lang %>" <%= user.nativeLanguage === lang ? 'selected' : '' %>><%= lang %></option>
-        <% }) %>
-      </select>
-    </div>
+        <div class="mb-3">
+          <label class="form-label">Location: <h5 id="location"><span id="flag-emoji" class="ms-2"></span>
+            Detecting location…</h5><h7 style="display: none;">Language:<p id="language"></p></h7></label>
+        </div>
+    
+        <div class="mb-3">
+          <label class="form-label">Native Language </label>
+          <select name="nativeLanguage" class="form-select language-dropdown" required>
+              <option <%= !user.nativeLanguage ? 'selected' : '' %>>Choose</option>
+            <% languages.forEach(lang => { %>
+              <option value="<%= lang %>" <%= user.nativeLanguage === lang ? 'selected' : '' %>><%= lang %></option>
+            <% }) %>
+          </select>
+        </div>
   
     <div class="mb-3">
       <label class="form-label">Language You Want To Learn</label>
@@ -73,5 +87,7 @@
   }
 </script>
 
-<script src="/js/populateLanguage.js"></script>
+
+<script src="js/profile.js"></script>
+
 </html>
