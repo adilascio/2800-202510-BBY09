@@ -18,14 +18,13 @@
       <form class="search-bar mt-3 mx-auto" style="max-width: 400px;" method="GET" action="/friends">
         <input
         type="text"
+        autocomplete="off"
         class="form-control"
         id="searchInput"
         name="search"
         placeholder="Search by name or username..."
         value="<%= searchQuery || '' %>"
-        oninput="this.form.submit()"
-      />
-      
+      />      
       </form>
     </div>
 
@@ -61,6 +60,6 @@
       <% }) %>
     </div>
   </div>
-
+  <script src="/js/friends.js"></script>
 </body>
 </html>
