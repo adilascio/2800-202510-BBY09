@@ -78,6 +78,7 @@ app.post('/login', async (req, res) => {
   const midnight = new Date();
   midnight.setDate(now.getDate() + 1);
   midnight.setHours(0, 0, 0, 0);
+  req.session.cookie.expires = midnight;
   const msUntilMidnight = midnight.getTime() - now.getTime();
 
   // Set session cookie to expire at midnight
@@ -94,26 +95,50 @@ app.get('/logout', (req, res) => {
   res.redirect('/login');
 });
 
+
+// endpoint to get the selected tutor
+app.post('/api/tutor/select', requireLogin, (req, res) => {
+  const tutor = req.body.tutor;
+  if (['english','spanish','french'].includes(tutor)) {
+    req.session.selectedTutor = tutor;
+  }
+  res.sendStatus(204);
+});
+
 // AI chat endpoint uses req.session.chatHistory as before
 app.post('/api/chat', requireLogin, async (req, res) => {
   try {
+
+    const prompts = {
+      english: 'You are a helpful English tutor.',
+      spanish: 'You are a helpful Spanish tutor.',
+      french:  'You are a helpful French tutor.'
+    };
+    const systemPrompt = prompts[req.session.selectedTutor || 'english'];
+
     const userMsg = req.body.message.trim();
     if (!userMsg) return res.status(400).json({ error: 'No message provided' });
 
     // Initialize or retrieve today's history
-    req.session.chatHistory = req.session.chatHistory || [];
+    // ensure we have a bucket for today
+    req.session.chatHistory = req.session.chatHistory || {};
+    const tutor = req.session.selectedTutor || 'english';
+    const history = (req.session.chatHistory || {})[tutor] || [];
+    // initialize history for this tutor if missing
+    req.session.chatHistory[tutor] = req.session.chatHistory[tutor] || [];
+
 
     // Build full context, call HF, append to session, respond as before
     const messages = [
-      { role: 'system', content: 'You are a helpful language tutor.' },
-      ...req.session.chatHistory,
-      { role: 'user', content: userMsg }
+      { role: 'system', content: systemPrompt },
+      ...req.session.chatHistory[tutor],
+      { role: 'user',   content: userMsg }
     ];
     const completion = await hf.chatCompletion({ model: 'microsoft/phi-4', messages });
     const reply = completion.choices[0]?.message?.content || 'Sorry, no reply.';
 
     // Append both user and assistant to session
-    req.session.chatHistory.push(
+    req.session.chatHistory[tutor].push(
       { role: 'user', content: userMsg },
       { role: 'assistant', content: reply }
     );
@@ -300,12 +325,14 @@ app.get('/logout', (req, res) => {
 
 // Tutor Page
 app.get('/tutor', requireLogin, (req, res) => {
-  const history = req.session.chatHistory || [];
+  const tutor = req.session.selectedTutor || 'english';
+  const history = req.session.chatHistory?.[tutor] || [];
   res.render('tutor', {
-    pageTitle: 'Tutor AI',
-    user: req.session.user,
-    activeTab: 'tutor',
-    history
+    pageTitle:'Tutor AI',
+    user:req.session.user,
+    activeTab:'tutor',
+    history,
+    selectedTutor: tutor
   });
 });
 
