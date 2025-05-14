@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <head>
   <meta charset="UTF-8" />
-  <title>Home</title>
+  <title>AI Tutor</title>
   <link rel="stylesheet" href="/css/index.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" />
 </head>
 
-<%- include('templates/header', { pageTitle: 'Tutor AI', activeTab: 'tutor' }) %>
+ <%- include('templates/header', { pageTitle: 'AI Tutor' }) %>
 
 <div class="container py-5">
-  <h2 class="mb-4">Tutor AI Chat</h2>
+  <h2 class="mb-4">AI Tutor Chat</h2>
 
   <!-- Chat window -->
   <div id="chatWindow" class="border rounded p-3 mb-3" style="height: 400px; overflow-y: auto; background: #f8f9fa;">
@@ -25,10 +25,13 @@
       placeholder="Type your message..."
       aria-label="User message"
     />
-    <button id="sendBtn" class="btn btn-primary">Send</button>
+    <button id="sendBtn" type="button" class="btn btn-primary">Send</button>
   </div>
 </div>
 
 <%- include('templates/navbar') %>
 
+<script>
+  window.CHAT_HISTORY = <%- JSON.stringify(history) %>;
+</script>
 <script src="/js/tutor.js"></script>

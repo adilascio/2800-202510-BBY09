@@ -4,7 +4,16 @@
 document.addEventListener('DOMContentLoaded', () => {
   const chatWindow = document.getElementById('chatWindow');
   const userInput  = document.getElementById('userInput');
-  const sendBtn    = document.getElementById('sendBtn');
+  if (Array.isArray(window.CHAT_HISTORY)) {
+    chatWindow.innerHTML = ''; // Clear chat window
+    window.CHAT_HISTORY.forEach(turn => {
+      // role is 'user' or 'assistant'
+      appendMessage(turn.content, turn.role === 'assistant' ? 'bot' : 'user');
+      console.log('replaying turn:', turn);
+    })
+    window.CHAT_HISTORY = []; // Clear history after replay
+  }
+  const sendBtn = document.getElementById('sendBtn');
 
   /**
    * Append a message bubble to the chat window.
@@ -24,10 +33,18 @@ document.addEventListener('DOMContentLoaded', () => {
     chatWindow.scrollTop = chatWindow.scrollHeight;
   }
 
+  // Replay stored history
+  if (Array.isArray(window.CHAT_HISTORY)) {
+    window.CHAT_HISTORY.forEach(turn => {
+      appendMessage(turn.content, turn.role === 'assistant' ? 'bot' : 'user');
+    });
+  }
+
   /**
    * Send the user message to the AI endpoint and display the reply.
    */
   async function sendMessage() {
+    console.log('Sending message:', userInput.value);
     // Capture and clear user input
     const msg = userInput.value.trim();
     if (!msg) return;
@@ -68,6 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
   sendBtn.addEventListener('click', sendMessage);
   userInput.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
+      e.preventDefault(); // Prevent form submission
       sendMessage();
     }
   });
