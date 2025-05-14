@@ -57,7 +57,9 @@
     <% }) %>
   </select>
     </div>
-  
+
+    <p>Birthday: <%= new Date(user.birthdate).toLocaleDateString() %></p>
+
     <button type="submit" class="btn btn-success">Save Profile</button>
   </form>
   
