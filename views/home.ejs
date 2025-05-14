@@ -9,23 +9,28 @@
 </head>
 
 <body>
-  <header class="d-flex justify-content-between align-items-center p-3 border-bottom">
+  <header class="d-flex justify-content-center align-items-center p-3 border-bottom">
     <h4 class="m-0">Hi, <%= user.name %>!</h4>
-
-    <div>
-      <!-- Add Friend Icon Top Right -->
-      <a href="/friends" style="position: absolute; top: 20px; right: 20px;" title="Add Friend">
-        <img src="/svgs/add-friend.svg" alt="Add Friend" width="30" height="30">
-      </a>
-    </div>
-  
-    <div>
-      <a href="/profile" style="position: absolute; top: 20px; left: 20px;" title="Create Your Profile">
-        <img src="/svgs/profile.svg" alt="Create Your Profile" width="30" height="30">
-      </a>
-    </div>
-
   </header>
+
+
+  <div style="position: fixed; top: 20px; left: 20px; z-index: 999;">
+    <a href="/profile" title="Create Your Profile">
+      <img src="/svgs/profile.svg" alt="Create Your Profile" width="30" height="30">
+    </a>
+  </div>
+
+  <!-- TOP-RIGHT ICONS (Fixed to screen corner) -->
+  <div style="position: fixed; top: 20px; right: 20px; z-index: 999;">
+    <a href="/friends" title="Add Friend" class="position-relative me-3">
+      <img src="/svgs/add-friend.svg" alt="Add Friend" width="30" height="30">
+      <% if (requestCount> 0) { %>
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+          <%= requestCount %>
+        </span>
+        <% } %>
+    </a>
+  </div>
 
   <main class="container text-center mt-5">
     <p class="lead">Welcome to your LingoLink dashboard. Use the tabs below to get started.</p>
@@ -33,24 +38,24 @@
 
   <!-- Persistent Nav Bar -->
   <%- include('templates/navbar', { activeTab: 'home' }) %>
-</body>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<% if (showProfilePrompt) { %>
-  <script>
-    Swal.fire({
-      title: "Create Your Profile",
-      text: "Would you like to create your profile now?",
-      icon: "info",
-      showCancelButton: true,
-      confirmButtonText: "Create Profile",
-      cancelButtonText: "Later"
-    }).then((result) => {
-      if (result.isConfirmed) {
-        window.location.href = "/profile";
-      }
-    });
-  </script>
-<% } %>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <% if (showProfilePrompt) { %>
+      <script>
+        Swal.fire({
+          title: "Create Your Profile",
+          text: "Would you like to create your profile now?",
+          icon: "info",
+          showCancelButton: true,
+          confirmButtonText: "Create Profile",
+          cancelButtonText: "Later"
+        }).then((result) => {
+          if (result.isConfirmed) {
+            window.location.href = "/profile";
+          }
+        });
+      </script>
+      <% } %>
+</body>
 
 </html>

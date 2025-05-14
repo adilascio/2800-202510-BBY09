@@ -1,17 +1,3 @@
-<<<<<<< Updated upstream
-
-  let debounceTimeout;
-  const searchInput = document.getElementById('searchInput');
-  const form = searchInput.closest('form');
-
-  searchInput.addEventListener('input', () => {
-    clearTimeout(debounceTimeout);
-    debounceTimeout = setTimeout(() => {
-      form.submit();
-    }, 300); // adjust delay as needed
-  });
-
-=======
 function filterFriends() {
   const input = document.getElementById('searchInput').value.toLowerCase();
   const cards = document.querySelectorAll('.friend-card-wrapper');
@@ -34,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const username = form.getAttribute('data-username');
       const button = form.querySelector('button');
+
       const isRequested = button.classList.contains('requested');
       const endpoint = isRequested ? '/cancel-request' : '/send-request';
 
@@ -48,10 +35,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (res.ok) {
           if (isRequested) {
+            // If cancelling request
             button.classList.remove('btn-secondary', 'requested');
             button.classList.add('btn-outline-dark');
             button.innerHTML = '<i class="bi bi-person-plus-fill me-1"></i>Add';
           } else {
+            // If sending request
             Swal.fire({
               icon: 'success',
               title: 'Request Sent',
@@ -74,4 +63,3 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
->>>>>>> Stashed changes
