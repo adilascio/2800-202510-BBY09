@@ -4,18 +4,22 @@ function filterFriends() {
 
   cards.forEach(card => {
     const name = card.querySelector('h6').textContent.toLowerCase();
-    card.style.display = name.includes(input) ? '' : 'none';
+    const username = card.querySelector('small').textContent.toLowerCase();
+    card.style.display = name.includes(input) || username.includes(input) ? '' : 'none';
   });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Hook up live search
+  document.getElementById('searchInput')?.addEventListener('input', filterFriends);
+
+  // Handle Add/Cancel request toggle
   document.querySelectorAll('.send-request-form').forEach(form => {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const username = form.getAttribute('data-username');
       const button = form.querySelector('button');
-
       const isRequested = button.classList.contains('requested');
       const endpoint = isRequested ? '/cancel-request' : '/send-request';
 
@@ -30,12 +34,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (res.ok) {
           if (isRequested) {
-            // If cancelling request
             button.classList.remove('btn-secondary', 'requested');
             button.classList.add('btn-outline-dark');
             button.innerHTML = '<i class="bi bi-person-plus-fill me-1"></i>Add';
           } else {
-            // If sending request
             Swal.fire({
               icon: 'success',
               title: 'Request Sent',

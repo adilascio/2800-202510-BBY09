@@ -62,7 +62,7 @@
   </form>
   
       <!-- Logout -->
-      <form action="/logout" method="GET" style="display:inline; position: absolute; bottom: 20px; right: 20px; ">
+      <form action="/logout" method="GET" style="display:inline; position: absolute; bottom: 100px; right: 20px; ">
         <button class="btn btn-outline-danger btn-sm">Logout</button>
       </form>
 </body>
@@ -86,8 +86,7 @@
     });
   }
 </script>
-
-
 <script src="js/profile.js"></script>
+<%- include('templates/navbar', { activeTab: 'messages' }) %>
 
 </html>
