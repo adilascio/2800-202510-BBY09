@@ -83,6 +83,13 @@ app.get('/signup', (req, res) => {
   res.render('signup', { pageTitle: 'Sign Up', errorMessage: null });
 });
 
+app.get("/game", requireLogin, (req, res) => {
+  res.render("game", {
+    user: req.session.user,
+    activeTab: "puzzles"
+  });
+});
+
 app.post('/signup', async (req, res) => {
   console.log('Form submitted:', req.body);
 
