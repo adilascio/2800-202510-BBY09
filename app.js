@@ -1,15 +1,27 @@
-// app.js (updated with login + signup + EJS rendering + validation)
+// app.js (login + signup + EJS rendering + validation + Tutor AI chat)
 require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
 const Joi = require('joi');
 const bcrypt = require('bcryptjs');
+// Using global fetch available in Node 18+
 const { connectToDatabase } = require('./database');
+
+// Hugging Face token
+const HF_API_TOKEN = process.env.HF_API_TOKEN;
+if (!HF_API_TOKEN) {
+  console.error('Missing HF_API_TOKEN in .env');
+  process.exit(1);
+}
+
+const { InferenceClient } = require('@huggingface/inference');
+
+const hf = new InferenceClient(HF_API_TOKEN);
+
 
 const PORT = process.env.PORT || 8000;
 const app = express();
-
 let db, usersCollection;
 
 // MongoDB connection
@@ -30,6 +42,7 @@ let db, usersCollection;
 // Middleware
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use(session({
   secret: process.env.SESSION_SECRET || 'temp-secret',
   resave: false,
@@ -123,19 +136,13 @@ app.post('/signup', async (req, res) => {
     email: req.body.email,
     username: req.body.username
   };
-
   req.session.showProfilePrompt = true;
   res.redirect('/home');
 });
 
-
-
-app.get('/home', (req, res) => {
-  if (!req.session.user) return res.redirect('/login');
-
+app.get('/home', requireLogin, (req, res) => {
   const showProfilePrompt = req.session.showProfilePrompt;
   req.session.showProfilePrompt = false;
-
   res.render('home', {
     pageTitle: 'LingoLink Home',
     user: req.session.user,
@@ -144,35 +151,35 @@ app.get('/home', (req, res) => {
   });
 });
 
+// Messages Page
+app.get('/messages', requireLogin, (req, res) => {
+  const showProfilePrompt = req.session.showProfilePrompt;
+  req.session.showProfilePrompt = false;
+  res.render('messages', {
+    pageTitle: 'Friends List',
+    user: req.session.user,
+    activeTab: 'messages',
+    showProfilePrompt
+  });
+});
 
 // Friends Page
-app.get('/friends', async (req, res) => {
-  if (!req.session.user) return res.redirect('/login');
-
+app.get('/friends', requireLogin, async (req, res) => {
   const currentUser = await usersCollection.findOne({ email: req.session.user.email });
   const search = req.query.search?.trim();
 
-  let query = {
-    email: { $ne: currentUser.email }
-  };
-
+  let query = { email: { $ne: currentUser.email } };
   if (search) {
     query.$or = [
       { name: { $regex: new RegExp(search, 'i') } },
       { username: { $regex: new RegExp(search, 'i') } }
     ];
-  } else {
-    // If no search, show suggested matches only
-    if (currentUser?.nativeLanguage && currentUser?.targetLanguage) {
-      query.nativeLanguage = currentUser.targetLanguage;
-      query.targetLanguage = currentUser.nativeLanguage;
-    } else {
-      return res.render('friends', { friends: [], searchQuery: '', showSuggested: true });
-    }
+  } else if (currentUser.nativeLanguage && currentUser.targetLanguage) {
+    query.nativeLanguage = currentUser.targetLanguage;
+    query.targetLanguage = currentUser.nativeLanguage;
   }
 
   const matches = await usersCollection.find(query).toArray();
-
   const friends = matches.map(user => ({
     name: user.name,
     username: user.username,
@@ -187,30 +194,22 @@ app.get('/friends', async (req, res) => {
   });
 });
 
-
-
-
-const languages = ["Afrikaans", "Albanian", "Amharic", "Arabic", "Armenian", "Bengali", "Bosnian",
-      "Bulgarian", "Burmese", "Catalan", "Chinese", "Croatian", "Czech", "Danish",
-      "Dutch", "English", "Estonian", "Filipino", "Finnish", "French", "German", 
-      "Greek", "Gujarati", "Hebrew", "Hindi", "Hungarian", "Icelandic", "Indonesian",
-      "Italian", "Japanese", "Kannada", "Kazakh", "Khmer", "Korean", "Lao", "Latvian", 
-      "Lithuanian", "Macedonian", "Malay", "Malayalam", "Marathi", "Mongolian", 
-      "Nepali", "Norwegian", "Pashto", "Persian", "Polish", "Portuguese", "Punjabi", 
-      "Romanian", "Russian", "Serbian", "Sinhala", "Slovak", "Slovenian", "Spanish", 
-      "Swahili", "Swedish", "Tamil", "Telugu", "Thai", "Turkish", "Ukrainian", "Urdu", 
-      "Uzbek", "Vietnamese", "Zulu"];
-
-app.get('/profile', async (req, res) => {
-  if (!req.session.user) return res.redirect('/login');
-
+// Profile
+const languages = [
+  "Afrikaans","Albanian","Amharic","Arabic","Armenian","Bengali","Bosnian","Bulgarian",
+  "Burmese","Catalan","Chinese","Croatian","Czech","Danish","Dutch","English","Estonian",
+  "Filipino","Finnish","French","German","Greek","Gujarati","Hebrew","Hindi","Hungarian",
+  "Icelandic","Indonesian","Italian","Japanese","Kannada","Kazakh","Khmer","Korean","Lao",
+  "Latvian","Lithuanian","Macedonian","Malay","Malayalam","Marathi","Mongolian","Nepali",
+  "Norwegian","Pashto","Persian","Polish","Portuguese","Punjabi","Romanian","Russian",
+  "Serbian","Sinhala","Slovak","Slovenian","Spanish","Swahili","Swedish","Tamil","Telugu",
+  "Thai","Turkish","Ukrainian","Urdu","Uzbek","Vietnamese","Zulu"
+];
+app.get('/profile', requireLogin, async (req, res) => {
   const user = await usersCollection.findOne({ email: req.session.user.email });
-
   res.render('profile', { user, languages });
 });
-
-
-app.post('/profile', async (req, res) => {
+app.post('/profile', requireLogin, async (req, res) => {
   await usersCollection.updateOne(
     { email: req.session.user.email },
     {
@@ -229,9 +228,41 @@ app.get('/logout', (req, res) => {
   res.redirect('/');
 });
 
-// 404
+// Tutor Page
+app.get('/tutor', requireLogin, (req, res) => {
+  res.render('tutor', {
+    pageTitle: 'Tutor AI',
+    user: req.session.user,
+    activeTab: 'tutor'
+  });
+});
+
+// AI Chat endpoint
+app.post('/api/chat', requireLogin, async (req, res) => {
+  try {
+    const userMsg = req.body.message.trim();
+    if (!userMsg) return res.status(400).json({ error: 'No message provided' });
+
+    // tell HF which model to use
+    const completion = await hf.chatCompletion({
+      model: 'microsoft/phi-4',
+      messages: [
+        { role: 'system',  content: 'You are a helpful language tutor.' },
+        { role: 'user',    content: userMsg }
+      ]
+    });
+
+    const reply = completion.choices?.[0]?.message?.content
+      || 'Sorry, the tutor had no reply.';
+
+    res.json({ reply });
+  } catch (err) {
+    console.error('Chat error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 404 handler
 app.use((req, res) => {
   res.status(404).render('404', { pageTitle: 'Not Found' });
 });
-``
-
