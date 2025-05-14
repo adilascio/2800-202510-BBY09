@@ -258,17 +258,28 @@ app.get('/profile', requireLogin, async (req, res) => {
 });
 
 app.post('/profile', requireLogin, async (req, res) => {
+  const update = {
+    nativeLanguage: req.body.nativeLanguage,
+    targetLanguage: req.body.targetLanguage,
+    username: req.body.username,
+    birthdate: req.body.birthdate ? new Date(req.body.birthdate) : null,
+    shareLocation: true
+  };
+
+  // Optional: Handle location if shared
+  if (req.body.lat && req.body.lng) {
+    // update.shareLocation = true;
+    update.location = {
+      lat: parseFloat(req.body.lat),
+      lng: parseFloat(req.body.lng)
+    };
+  } 
+
   await usersCollection.updateOne(
     { email: req.session.user.email },
-    {
-      $set: {
-        nativeLanguage: req.body.nativeLanguage,
-        targetLanguage: req.body.targetLanguage,
-        username: req.body.username,
-        birthdate: req.body.birthdate ? new Date(req.body.birthdate) : null
-      }
-    }
+    { $set: update }
   );
+
   res.redirect('/profile?updated=true');
 });
 
@@ -293,6 +304,33 @@ app.get('/messages', requireLogin, async (req, res) => {
     friends: friendData,
     activeTab: 'messages'
   });
+});
+
+app.get('/settings', requireLogin, async (req, res) => {
+  const user = await usersCollection.findOne({ email: req.session.user.email });
+  res.render('settings', { user });
+});
+
+app.post('/settings', requireLogin, async (req, res) => {
+  const shareLocation = req.body.shareLocation === 'on';
+
+  const update = { shareLocation };
+
+  if (shareLocation && req.body.lat && req.body.lng) {
+    update.location = {
+      lat: parseFloat(req.body.lat),
+      lng: parseFloat(req.body.lng)
+    };
+  } else {
+    update.location = null;
+  }
+
+  await usersCollection.updateOne(
+    { email: req.session.user.email },
+    { $set: update }
+  );
+
+  res.redirect('/profile?updated=true');
 });
 
 
