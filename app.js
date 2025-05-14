@@ -264,7 +264,8 @@ app.post('/profile', requireLogin, async (req, res) => {
       $set: {
         nativeLanguage: req.body.nativeLanguage,
         targetLanguage: req.body.targetLanguage,
-        username: req.body.username
+        username: req.body.username,
+        birthdate: req.body.birthdate ? new Date(req.body.birthdate) : null
       }
     }
   );
