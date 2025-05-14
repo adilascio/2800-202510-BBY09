@@ -31,6 +31,19 @@
 
   <main class="container text-center mt-5">
     <h2>Daily Word Game</h2>
+    <!-- Language Selector -->
+    <div class="mb-3">
+        <label for="language-select" class="form-label fw-bold">Select Language:</label>
+        <select id="language-select" class="form-select w-auto mx-auto">
+            <option value="en">English</option>
+            <option value="fr">French</option>
+            <option value="es">Spanish</option>
+            <option value="de">German</option>
+            <option value="it">Italian</option>
+            <option value="ja">Japanese</option>
+        </select>
+    </div>
+
     <p class="lead">Use the letters below to form as many words as you can. Each letter can be used only once!</p>
 
     <div id="letter-bank" class="my-4 fs-3 fw-bold"></div>
