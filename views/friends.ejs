@@ -16,15 +16,14 @@
 
       <form class="search-bar mt-3 mx-auto" style="max-width: 400px;" method="GET" action="/friends">
         <input
-        type="text"
-        class="form-control"
-        id="searchInput"
-        name="search"
-        placeholder="Search by name or username..."
-        value="<%= searchQuery || '' %>"
-        oninput="this.form.submit()"
-      />
-      
+          type="text"
+          class="form-control"
+          id="searchInput"
+          name="search"
+          placeholder="Search by name or username..."
+          value="<%= searchQuery || '' %>"
+          oninput="this.form.submit()"
+        />
       </form>
     </div>
 
@@ -90,5 +89,8 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="/js/friends.js"></script>
+  <%- include('templates/navbar', { activeTab: 'messages' }) %>
 </body>
 </html>
