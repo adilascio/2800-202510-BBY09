@@ -106,6 +106,22 @@ app.post('/played-today', requireLogin, async (req, res) => {
   res.sendStatus(200);
 });
 
+function canPlayToday(req, res, next) {
+  usersCollection.findOne({ email: req.session.user.email }).then(user => {
+    const nowPST = DateTime.now().setZone('America/Los_Angeles');
+    const todayPST = nowPST.toFormat('yyyy-MM-dd');
+
+    if (user.lastPlayed === todayPST) {
+      req.alreadyPlayed = true;
+      req.gameResult = user.lastGameResult || [];
+      req.playMessage = "You've already played today. Come back tomorrow!";
+    } else {
+      req.gameResult = [];       
+      req.playMessage = null;
+    }
+    next();
+  });
+}
 
 app.post('/signup', async (req, res) => {
   const schema = Joi.object({
