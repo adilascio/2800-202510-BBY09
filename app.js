@@ -5,6 +5,8 @@ const path = require('path');
 const Joi = require('joi');
 const bcrypt = require('bcryptjs');
 const { connectToDatabase } = require('./database');
+const { DateTime } = require('luxon');
+
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -74,6 +76,36 @@ app.post('/login', async (req, res) => {
 app.get('/signup', (req, res) => {
   res.render('signup', { pageTitle: 'Sign Up', errorMessage: null });
 });
+
+app.get("/game", requireLogin, canPlayToday, (req, res) => {
+  res.render("game", {
+    user: req.session.user,
+    activeTab: "puzzles",
+    message: req.playMessage || null,
+    result: req.gameResult || []
+  });
+});
+
+app.post('/played-today', requireLogin, async (req, res) => {
+  const { result } = req.body;
+
+  const todayPST = DateTime.now()
+    .setZone('America/Los_Angeles')
+    .toFormat('yyyy-MM-dd');
+
+  await usersCollection.updateOne(
+    { email: req.session.user.email },
+    {
+      $set: {
+        lastPlayed: todayPST,
+        lastGameResult: result || []
+      }
+    }
+  );
+
+  res.sendStatus(200);
+});
+
 
 app.post('/signup', async (req, res) => {
   const schema = Joi.object({

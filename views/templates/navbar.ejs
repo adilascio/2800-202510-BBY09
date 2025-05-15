@@ -31,6 +31,7 @@
   
       <!-- Puzzles Tab -->
       <button
+        onclick="location.href='/game'"
         class="btn py-2 <%= activeTab === 'puzzles' ? 'text-primary' : '' %>"
         aria-label="Puzzles"
       >
@@ -42,7 +43,8 @@
       </button>
   
       <!-- Home Tab -->
-      <a
+      <button
+        onclick="location.href='/home'"
         class="btn py-2 <%= activeTab === 'home' ? 'text-primary' : '' %>"
         aria-label="Home"
         aria-label="Home" href="/home"
