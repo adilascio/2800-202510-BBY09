@@ -217,7 +217,6 @@ app.get('/messages', requireLogin, (req, res) => {
   });
 });
 
-
 // Friends Page
 app.get('/friends', async (req, res) => {
   if (!req.session.user) return res.redirect('/login');
@@ -294,7 +293,6 @@ app.post('/send-request', requireLogin, async (req, res) => {
 
   res.sendStatus(200);
 });
-
 
 app.post('/accept-request', requireLogin, async (req, res) => {
   const { fromUsername } = req.body;
@@ -410,7 +408,6 @@ app.post('/settings', requireLogin, async (req, res) => {
 
   res.redirect('/profile?updated=true');
 });
-
 
 app.get('/logout', (req, res) => {
   req.session.destroy();

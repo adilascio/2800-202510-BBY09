@@ -1,117 +1,49 @@
-<nav
-  class="navbar fixed-bottom bg-white"
-  style="box-shadow: 0 -4px 8px rgba(0,0,0,0.1);" 
->
-  <div class="d-flex w-100 justify-content-around" >
+<nav class="navbar fixed-bottom bg-white" style="box-shadow: 0 -4px 8px rgba(0,0,0,0.1);">
+  <div class="d-flex w-100 justify-content-around align-items-center py-2">
 
     <!-- Messages Tab -->
-    <a
-      href="/messages"
+    <button
       class="btn py-2 <%= activeTab === 'messages' ? 'text-primary' : '' %>"
+      onclick="location.href='/messages'"
       aria-label="Messages"
     >
-      <% if (activeTab === 'messages') { %>
-        <img src="/svgs/chat-left-text-fill.svg" width="24" height="24" alt="Messages (active)">
-      <% } else { %>
-        <img src="/svgs/chat-left-text.svg" width="24" height="24" alt="Messages">
-      <% } %>
-    </a>
+      <img src="/svgs/<%= activeTab === 'messages' ? 'chat-left-text-fill' : 'chat-left-text' %>.svg"
+           width="24" height="24"
+           alt="Messages">
+    </button>
 
     <!-- Learning Tab -->
-    <a
-      href="/tutor"
+    <button
       class="btn py-2 <%= activeTab === 'learning' ? 'text-primary' : '' %>"
+      onclick="location.href='/tutor'"
       aria-label="Learning"
     >
-      <% if (activeTab === 'learning') { %>
-        <img src="/svgs/mortarboard-fill.svg" width="32" height="29" alt="Learning (active)">
-      <% } else { %>
-        <img src="/svgs/mortarboard.svg" width="32" height="29" alt="Learning">
-      <% } %>
-    </a>
+      <img src="/svgs/<%= activeTab === 'learning' ? 'mortarboard-fill' : 'mortarboard' %>.svg"
+           width="32" height="29"
+           alt="Learning">
+    </button>
 
     <!-- Puzzles Tab -->
-    <a
-      href="/puzzles"
+    <button
       class="btn py-2 <%= activeTab === 'puzzles' ? 'text-primary' : '' %>"
+      onclick="location.href='/game'"
       aria-label="Puzzles"
     >
-      <% if (activeTab === 'puzzles') { %>
-        <img src="/svgs/puzzle-fill.svg" width="24" height="24" alt="Puzzles (active)">
-      <% } else { %>
-        <img src="/svgs/puzzle.svg" width="29" height="29" alt="Puzzles">
-      <% } %>
-    </a>
+      <img src="/svgs/<%= activeTab === 'puzzles' ? 'puzzle-fill' : 'puzzle' %>.svg"
+           width="28" height="28"
+           alt="Puzzles">
+    </button>
 
     <!-- Home Tab -->
-    <a
-      href="/home"
+    <button
       class="btn py-2 <%= activeTab === 'home' ? 'text-primary' : '' %>"
+      onclick="location.href='/home'"
       aria-label="Home"
     >
-      <% if (activeTab === 'home') { %>
-        <img src="/svgs/house-fill.svg" width="24" height="24" alt="Home (active)">
-      <% } else { %>
-        <img src="/svgs/house.svg" width="27" height="27" alt="Home">
-      <% } %>
-    </a>
+      <img src="/svgs/<%= activeTab === 'home' ? 'house-fill' : 'house' %>.svg"
+           width="27" height="27"
+           alt="Home">
+    </button>
 
   </div>
 </nav>
-
-    <div class="d-flex w-100 justify-content-around">
-  
-      <!-- Messages Tab -->
-      <a
-      class="btn py-2 <%= activeTab === 'messages' ? 'text-primary' : '' %>"
-      href="/messages"
-      aria-label="Messages"
-    >
-      <% if (activeTab === 'messages') { %>
-        <img src="/svgs/chat-left-text-fill.svg" width="24" height="24" alt="Messages (active)">
-      <% } else { %>
-        <img src="/svgs/chat-left-text.svg" width="24" height="24" alt="Messages">
-      <% } %>
-    </a>
-  
-      <!-- Learning Tab -->
-      <button
-        class="btn py-2 <%= activeTab === 'learning' ? 'text-primary' : '' %>"
-        aria-label="Learning"
-      >
-        <% if (activeTab === 'learning') { %>
-          <img src="/svgs/mortarboard-fill.svg" width="32" height="29" alt="Learning (active)">
-        <% } else { %>
-          <img src="/svgs/mortarboard.svg" width="32" height="29" alt="Learning">
-        <% } %>
-      </button>
-  
-      <!-- Puzzles Tab -->
-      <button
-        onclick="location.href='/game'"
-        class="btn py-2 <%= activeTab === 'puzzles' ? 'text-primary' : '' %>"
-        aria-label="Puzzles"
-      >
-        <% if (activeTab === 'puzzles') { %>
-          <img src="/svgs/puzzle-fill.svg" width="24" height="24" alt="Puzzles (active)">
-        <% } else { %>
-          <img src="/svgs/puzzle.svg" width="29" height="29" alt="Puzzles">
-        <% } %>
-      </button>
-  
-      <!-- Home Tab -->
-      <button
-        onclick="location.href='/home'"
-        class="btn py-2 <%= activeTab === 'home' ? 'text-primary' : '' %>"
-        aria-label="Home"
-        aria-label="Home" href="/home"
-      >
-        <% if (activeTab === 'home') { %>
-          <img src="/svgs/house-fill.svg" width="24" height="24" alt="Home (active)">
-        <% } else { %>
-          <img src="/svgs/house.svg" width="27" height="27" alt="Home">
-        <% } %>
-        </a>
-  
-    </div>
-  </nav>
