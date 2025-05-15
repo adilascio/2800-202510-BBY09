@@ -9,6 +9,8 @@
 </head>
 
 <body>
+  <% requestCount = typeof requestCount !== 'undefined' ? requestCount : 0; %>
+
   <header class="d-flex justify-content-center align-items-center p-3 border-bottom">
     <h4 class="m-0">Hi, <%= user.name %>!</h4>
   </header>

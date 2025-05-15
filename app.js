@@ -62,15 +62,36 @@ app.post('/login', async (req, res) => {
   });
 
   const { error } = schema.validate(req.body);
-  if (error) return res.render('login', { pageTitle: 'Log In', errorMessage: 'Invalid email or password format.' });
+  if (error) {
+    return res.render('login', {
+      pageTitle: 'Log In',
+      errorMessage: 'Invalid email or password format.'
+    });
+  }
 
   const user = await usersCollection.findOne({ email: req.body.email });
   if (!user || !(await bcrypt.compare(req.body.password, user.password))) {
-    return res.render('login', { pageTitle: 'Log In', errorMessage: 'Incorrect email or password.' });
+    return res.render('login', {
+      pageTitle: 'Log In',
+      errorMessage: 'Incorrect email or password.'
+    });
   }
 
-  req.session.user = { name: user.name, email: user.email, username: user.username };
-  res.redirect('/home');
+  req.session.user = {
+    name: user.name,
+    email: user.email,
+    username: user.username
+  };
+
+  const requestCount = user.friendRequestsReceived?.length || 0;
+
+  res.render('home', {
+    pageTitle: 'LingoLink Home',
+    user: req.session.user,
+    activeTab: 'home',
+    showProfilePrompt: false,
+    requestCount
+  });
 });
 
 app.get('/signup', (req, res) => {
@@ -85,6 +106,23 @@ app.get("/game", requireLogin, canPlayToday, (req, res) => {
     result: req.gameResult || []
   });
 });
+
+function canPlayToday(req, res, next) {
+  usersCollection.findOne({ email: req.session.user.email }).then(user => {
+    const nowPST = DateTime.now().setZone('America/Los_Angeles');
+    const todayPST = nowPST.toFormat('yyyy-MM-dd');
+
+    if (user.lastPlayed === todayPST) {
+      req.alreadyPlayed = true;
+      req.gameResult = user.lastGameResult || [];
+      req.playMessage = "You've already played today. Come back tomorrow!";
+    } else {
+      req.gameResult = [];         // ✅ <--- ensure it's defined
+      req.playMessage = null;
+    }
+    next();
+  });
+}
 
 app.post('/played-today', requireLogin, async (req, res) => {
   const { result } = req.body;
