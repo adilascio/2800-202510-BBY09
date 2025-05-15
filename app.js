@@ -6,6 +6,8 @@ const path = require('path');
 const Joi = require('joi');
 const bcrypt = require('bcryptjs');
 const { connectToDatabase } = require('./database');
+const { DateTime } = require('luxon');
+
 
 const PORT = process.env.PORT || 8000;
 const app = express();
@@ -42,6 +44,24 @@ function requireLogin(req, res, next) {
   if (!req.session.user) return res.redirect('/login');
   next();
 }
+
+function canPlayToday(req, res, next) {
+  usersCollection.findOne({ email: req.session.user.email }).then(user => {
+    const nowPST = DateTime.now().setZone('America/Los_Angeles');
+    const todayPST = nowPST.toFormat('yyyy-MM-dd');
+
+    if (user.lastPlayed === todayPST) {
+      req.alreadyPlayed = true;
+      req.gameResult = user.lastGameResult || [];
+      req.playMessage = "You've already played today. Come back tomorrow!";
+    } else {
+      req.gameResult = [];         // ✅ <--- ensure it's defined
+      req.playMessage = null;
+    }
+    next();
+  });
+}
+
 
 // Routes
 app.get('/', (req, res) => {
@@ -83,12 +103,35 @@ app.get('/signup', (req, res) => {
   res.render('signup', { pageTitle: 'Sign Up', errorMessage: null });
 });
 
-app.get("/game", requireLogin, (req, res) => {
+app.get("/game", requireLogin, canPlayToday, (req, res) => {
   res.render("game", {
     user: req.session.user,
-    activeTab: "puzzles"
+    activeTab: "puzzles",
+    message: req.playMessage || null,
+    result: req.gameResult || []
   });
 });
+
+app.post('/played-today', requireLogin, async (req, res) => {
+  const { result } = req.body;
+
+  const todayPST = DateTime.now()
+    .setZone('America/Los_Angeles')
+    .toFormat('yyyy-MM-dd');
+
+  await usersCollection.updateOne(
+    { email: req.session.user.email },
+    {
+      $set: {
+        lastPlayed: todayPST,
+        lastGameResult: result || []
+      }
+    }
+  );
+
+  res.sendStatus(200);
+});
+
 
 app.post('/signup', async (req, res) => {
   console.log('Form submitted:', req.body);
@@ -135,8 +178,6 @@ app.post('/signup', async (req, res) => {
   res.redirect('/home');
 });
 
-
-
 app.get('/home', (req, res) => {
   if (!req.session.user) return res.redirect('/login');
 
@@ -150,7 +191,6 @@ app.get('/home', (req, res) => {
     showProfilePrompt
   });
 });
-
 
 // Friends Page
 app.get('/friends', async (req, res) => {
@@ -194,9 +234,6 @@ app.get('/friends', async (req, res) => {
   });
 });
 
-
-
-
 const languages = ["Afrikaans", "Albanian", "Amharic", "Arabic", "Armenian", "Bengali", "Bosnian",
       "Bulgarian", "Burmese", "Catalan", "Chinese", "Croatian", "Czech", "Danish",
       "Dutch", "English", "Estonian", "Filipino", "Finnish", "French", "German", 
@@ -215,7 +252,6 @@ app.get('/profile', async (req, res) => {
 
   res.render('profile', { user, languages });
 });
-
 
 app.post('/profile', async (req, res) => {
   await usersCollection.updateOne(

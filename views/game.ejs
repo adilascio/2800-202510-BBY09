@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <title>Daily Word Game</title>
@@ -12,7 +11,6 @@
 <body>
   <header class="d-flex justify-content-between align-items-center p-3 border-bottom">
     <h4 class="m-0">Welcome to the Daily Game!</h4>
-
 
     <div>
       <!-- Add Friend Icon -->
@@ -31,17 +29,18 @@
 
   <main class="container text-center mt-5">
     <h2>Daily Word Game</h2>
+
     <!-- Language Selector -->
     <div class="mb-3">
-        <label for="language-select" class="form-label fw-bold">Select Language:</label>
-        <select id="language-select" class="form-select w-auto mx-auto">
-            <option value="en">English</option>
-            <option value="fr">French</option>
-            <option value="es">Spanish</option>
-            <option value="de">German</option>
-            <option value="it">Italian</option>
-            <option value="ja">Japanese</option>
-        </select>
+      <label for="language-select" class="form-label fw-bold">Select Language:</label>
+      <select id="language-select" class="form-select w-auto mx-auto">
+        <option value="en">English</option>
+        <option value="fr">French</option>
+        <option value="es">Spanish</option>
+        <option value="de">German</option>
+        <option value="it">Italian</option>
+        <option value="ja">Japanese</option>
+      </select>
     </div>
 
     <p class="lead">Use the letters below to form as many words as you can. Each letter can be used only once!</p>
@@ -64,7 +63,12 @@
   <!-- Persistent Nav Bar -->
   <%- include('templates/navbar', { activeTab: 'puzzles' }) %>
 
+  <!-- Inject result from server -->
+  <script>
+    window.usedWordsFromServer = JSON.parse(`<%- JSON.stringify(typeof result !== 'undefined' ? result : []) %>`);
+  </script>
+  <!-- Load game logic -->
   <script src="/js/game.js"></script>
+  
 </body>
-
 </html>
