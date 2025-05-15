@@ -1,101 +1,71 @@
 <!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Messages</title>
+  <title><%= pageTitle || 'Messages' %></title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Bootstrap + Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+  <link 
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" 
+    rel="stylesheet" 
+  />
+  <link 
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" 
+    rel="stylesheet" 
+  />
+
+  <!-- Your custom styles -->
+  <link rel="stylesheet" href="/css/index.css" />
+
   <style>
-    body {
-      background-color: #f2f4f7;
-    }
-
-    .container {
-      max-width: 600px;
-    }
-
+    body { background-color: #f2f4f7; }
+    .container { max-width: 600px; }
     .friend-card {
-      background-color: #fff;
+      background: #fff;
       border-radius: 12px;
       padding: 15px 20px;
       margin-bottom: 15px;
-      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.05);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      transition: box-shadow 0.2s ease;
+      transition: box-shadow .2s;
     }
-
-    .friend-card:hover {
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .friend-info {
-      display: flex;
-      align-items: center;
-    }
-
+    .friend-card:hover { box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
     .friend-avatar {
-      width: 48px;
-      height: 48px;
+      width: 48px; height: 48px;
       border-radius: 50%;
-      margin-right: 15px;
       object-fit: cover;
+      margin-right: 15px;
     }
-
-    .friend-name {
-      font-weight: 600;
-      margin: 0;
-    }
-
-    .friend-username {
-      font-size: 0.85rem;
-      color: #6c757d;
-    }
-
-    .search-bar input {
-      border-radius: 20px;
-      padding-left: 15px;
-    }
-
+    .search-bar input { border-radius: 20px; padding-left: 15px; }
     .message-btn {
       background-color: #0d6efd;
-      color: white;
+      color: #fff;
       border-radius: 50%;
       width: 38px;
       height: 38px;
       display: flex;
-      justify-content: center;
       align-items: center;
+      justify-content: center;
     }
-
-    .message-btn:hover {
-      background-color: #0b5ed7;
-    }
+    .message-btn:hover { background-color: #0b5ed7; }
   </style>
-  <meta charset="UTF-8" />
-  <title>Friends list</title>
-  <link rel="stylesheet" href="/css/index.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" />
 </head>
-
 <body>
+
+  <!-- site‑wide header -->
+  <%- include('templates/header', { pageTitle }) %>
+
   <div class="container py-4">
+
     <h3 class="fw-bold text-center mb-4">Your Chats</h3>
 
-    <!-- Search -->
-    <div class="search-bar mb-4">
-
- <%- include('templates/header', { pageTitle: 'Friends list' }) %>
-
-  <main class="px-3 pt-3">
-
     <!-- Search Bar -->
-    <div class="input-group mb-3">
+    <div class="input-group mb-4 search-bar">
       <span class="input-group-text bg-transparent border-0">
-        <!-- insert hamburger SVG here -->
+        <!-- hamburger icon -->
         <svg width="20" height="20"><!-- … --></svg>
       </span>
       <input
@@ -107,39 +77,49 @@
     </div>
 
     <!-- Friend List -->
-    <% if (friends.length === 0) { %>
+    <% const list = Array.isArray(friends) ? friends : []; %>
+    <% if (list.length === 0) { %>
       <p class="text-muted text-center">You don't have any friends yet.</p>
     <% } else { %>
       <div id="friendList">
-        <% friends.forEach(friend => { %>
+        <% list.forEach(friend => { %>
           <div class="friend-card">
-            <div class="friend-info">
-              <img src="<%= friend.avatar || '/img/user1.png' %>" class="friend-avatar" alt="Avatar">
+            <div class="d-flex align-items-center">
+              <img
+                src="<%= friend.avatar || '/img/user1.png' %>"
+                class="friend-avatar"
+                alt="Avatar of <%= friend.name %>"
+              />
               <div>
-                <p class="friend-name"><%= friend.name %></p>
-                <span class="friend-username">@<%= friend.username %></span>
+                <p class="mb-0 fw-semibold"><%= friend.name %></p>
+                <small class="text-secondary">@<%= friend.username %></small>
               </div>
             </div>
-            <a href="/chat/<%= friend.username %>" class="message-btn" title="Message <%= friend.name %>">
+            <a
+              href="/chat/<%= friend.username %>"
+              class="message-btn"
+              title="Message <%= friend.name %>"
+            >
               <i class="bi bi-chat-dots-fill"></i>
             </a>
           </div>
-        <% }) %>
+        <% }); %>
       </div>
     <% } %>
+
   </div>
 
-  <!-- Navbar -->
+  <!-- site‑wide bottom navbar -->
   <%- include('templates/navbar', { activeTab: 'messages' }) %>
 
   <script>
     // Live search filter
     document.getElementById('searchInput').addEventListener('input', function () {
-      const search = this.value.toLowerCase();
+      const q = this.value.toLowerCase();
       document.querySelectorAll('.friend-card').forEach(card => {
-        const name = card.querySelector('.friend-name').textContent.toLowerCase();
-        const username = card.querySelector('.friend-username').textContent.toLowerCase();
-        card.style.display = name.includes(search) || username.includes(search) ? '' : 'none';
+        const name = card.querySelector('.fw-semibold').textContent.toLowerCase();
+        const uname = card.querySelector('small').textContent.toLowerCase();
+        card.style.display = name.includes(q) || uname.includes(q) ? '' : 'none';
       });
     });
   </script>

@@ -210,7 +210,10 @@ app.get('/messages', requireLogin, (req, res) => {
     pageTitle: 'Friends List',
     user: req.session.user,
     activeTab: 'messages',
-    showProfilePrompt
+    showProfilePrompt,
+    friends: [],
+    
+
   });
 });
 
