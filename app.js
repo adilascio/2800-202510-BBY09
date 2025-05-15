@@ -110,9 +110,9 @@ app.post('/api/chat', requireLogin, async (req, res) => {
   try {
 
     const prompts = {
-      english: 'You are a helpful English tutor.',
-      spanish: 'You are a helpful Spanish tutor.',
-      french:  'You are a helpful French tutor.'
+      english: "You are a friendly English tutor. Respond in clear English but feel free to sprinkle in casual words or phrase when it helps illustrate your point. Keep it concise and include phonics if teaching a new word.",
+      spanish: "You are a friendly Spanish tutor. Respond in clear English but feel free to sprinkle in a Spanish word or phrase (with translations) when it helps illustrate your point. Keep it concise and include phonics if teaching a new word.",
+      french:  "You are a friendly French tutor. Respond in clear English but feel free to sprinkle in a French word or phrase (with translations) when it helps illustrate your point. Keep it concise and include phonics if teaching a new word."
     };
     const systemPrompt = prompts[req.session.selectedTutor || 'english'];
 
