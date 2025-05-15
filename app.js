@@ -202,20 +202,18 @@ app.get('/home', requireLogin, async (req, res) => {
   });
 });
 
-// Messages Page
-app.get('/messages', requireLogin, (req, res) => {
-  const showProfilePrompt = req.session.showProfilePrompt;
-  req.session.showProfilePrompt = false;
-  res.render('messages', {
-    pageTitle: 'Friends List',
-    user: req.session.user,
-    activeTab: 'messages',
-    showProfilePrompt,
-    friends: [],
-    
-
-  });
-});
+// // Messages Page
+// app.get('/messages', requireLogin, (req, res) => {
+//   const showProfilePrompt = req.session.showProfilePrompt;
+//   req.session.showProfilePrompt = false;
+//   res.render('messages', {
+//     pageTitle: 'Friends List',
+//     user: req.session.user,
+//     activeTab: 'messages',
+//     showProfilePrompt,
+//     friends: [],
+//   });
+// });
 
 // Friends Page
 app.get('/friends', async (req, res) => {
