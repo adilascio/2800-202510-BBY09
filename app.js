@@ -1,9 +1,11 @@
+// app.js (login + signup + EJS rendering + validation + Tutor AI chat)
 require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
 const Joi = require('joi');
 const bcrypt = require('bcryptjs');
+const MongoStore = require('connect-mongo');
 const { connectToDatabase } = require('./database');
 const { DateTime } = require('luxon');
 
@@ -13,16 +15,28 @@ const PORT = process.env.PORT || 8000;
 
 let db, usersCollection;
 
+// DB connect and HF client setup
+const { InferenceClient } = require('@huggingface/inference');
+const HF_API_TOKEN = process.env.HF_API_TOKEN;
+if (!HF_API_TOKEN) {
+  console.error('Missing HF_API_TOKEN in .env');
+  process.exit(1);
+}
+const hf = new InferenceClient(HF_API_TOKEN);
+
 (async () => {
   try {
     const dbResult = await connectToDatabase();
     db = dbResult.db;
     usersCollection = dbResult.users;
+    app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
 
     app.listen(PORT, () => {
       console.log(`Server running at http://localhost:${PORT}`);
     });
   } catch (err) {
+    console.error('Failed to connect to MongoDB:', err);
+    process.exit(1);
     console.error("MongoDB Connection Failed:", err);
   }
 })();
@@ -191,7 +205,6 @@ app.post('/signup', async (req, res) => {
     email: req.body.email,
     username: req.body.username
   };
-
   req.session.showProfilePrompt = true;
   res.redirect('/home');
 });
@@ -202,7 +215,6 @@ app.get('/home', requireLogin, async (req, res) => {
 
   const showProfilePrompt = req.session.showProfilePrompt;
   req.session.showProfilePrompt = false;
-
   res.render('home', {
     pageTitle: 'LingoLink Home',
     user: req.session.user,
@@ -212,7 +224,22 @@ app.get('/home', requireLogin, async (req, res) => {
   });
 });
 
-app.get('/friends', requireLogin, async (req, res) => {
+// Messages Page
+app.get('/messages', requireLogin, (req, res) => {
+  const showProfilePrompt = req.session.showProfilePrompt;
+  req.session.showProfilePrompt = false;
+  res.render('messages', {
+    pageTitle: 'Friends List',
+    user: req.session.user,
+    activeTab: 'messages',
+    showProfilePrompt
+  });
+});
+
+
+// Friends Page
+app.get('/friends', async (req, res) => {
+  if (!req.session.user) return res.redirect('/login');
   const currentUser = await usersCollection.findOne({ email: req.session.user.email });
   const search = req.query.search?.trim();
 
@@ -413,6 +440,54 @@ app.get('/logout', (req, res) => {
   res.redirect('/');
 });
 
+// Tutor Page
+app.get('/tutor', requireLogin, (req, res) => {
+  const tutor = req.session.selectedTutor || 'english';
+  const history = req.session.chatHistory?.[tutor] || [];
+  res.render('tutor', {
+    pageTitle:'Tutor AI',
+    user:req.session.user,
+    activeTab:'tutor',
+    history,
+    selectedTutor: tutor
+  });
+});
+
+// AI Chat endpoint
+app.post('/api/chat', requireLogin, async (req, res) => {
+  try {
+    const userMsg = req.body.message.trim();
+    if (!userMsg) return res.status(400).json({ error: 'No message provided' });
+
+    // storing the message in the session
+    req.session.chatHistory = req.session.chatHistory || [];
+
+    const messages = [
+        { role: 'system',  content: 'You are a helpful language tutor.' },
+        ...req.session.chatHistory,
+        { role: 'user',    content: userMsg }
+      ];
+
+    // tell HF which model to use
+    const completion = await hf.chatCompletion({
+      model: 'microsoft/phi-4',
+      messages
+    });
+
+
+    // receive reply 
+    const reply = completion.choices?.[0]?.message?.content
+      || 'Sorry, the tutor had no reply.';
+    //send reply and chat history
+    res.json({ reply , history: req.session.chatHistory });
+
+  } catch (err) {
+    console.error('Chat error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 404 handler
 app.use((req, res) => {
   res.status(404).render('404', { pageTitle: 'Not Found' });
 });

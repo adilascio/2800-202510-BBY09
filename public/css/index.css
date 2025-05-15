@@ -8,6 +8,7 @@ body {
     justify-items: center; 
     align-items: center;   
     text-align: center;
+    padding-bottom: 100px;
 }
 
 h1 {
