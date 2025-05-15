@@ -30,10 +30,6 @@ const hf = new InferenceClient(HF_API_TOKEN);
     db = dbResult.db;
     usersCollection = dbResult.users;
     app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
-
-    app.listen(PORT, () => {
-      console.log(`Server running at http://localhost:${PORT}`);
-    });
   } catch (err) {
     console.error('Failed to connect to MongoDB:', err);
     process.exit(1);
