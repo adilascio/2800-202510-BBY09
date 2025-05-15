@@ -43,7 +43,7 @@
       <input type="text" class="form-control" name="username" value="<%= user.username || '' %>" required>
     </div>
 
-    <div class="mb-3">
+    <div class="mb-3" type="hidden">
       <label class="form-label">Location:</label>
       <h5 id="location"><i class="bi bi-geo-alt-fill text-danger me-2"></i><span id="flag-emoji"></span> Detecting...</h5>
     </div>
@@ -79,9 +79,9 @@
       <div id="map" class="mb-3"></div>
     </div>
     
-
-    <input type="hidden" name="lat" id="lat" />
-    <input type="hidden" name="lng" id="lng" />
+    <input type="hidden" id="lat" name="lat" value="<%= user.location ? user.location.lat : '' %>" />
+    <input type="hidden" id="lng" name="lng" value="<%= user.location ? user.location.lng : '' %>" />
+    
     <input type="hidden" name="shareLocation" value="on" />
 
     <button type="submit" class="btn btn-success">Save Profile</button>

@@ -349,35 +349,25 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (e) {
           console.warn("Could not detect country/language:", e);
         }
-
-      } Swal.fire({
-        title: "Save detected location?",
-        text: "We found your current location. Do you want to save it?",
-        showDenyButton: true,
-        showCancelButton: true,
-        confirmButtonText: "Save",
-        denyButtonText: `Don't save`
-      }).then(saveResult => {
-        if (saveResult.isConfirmed) {
-          Swal.fire("Location saved!", "", "success");
-        } else if (saveResult.isDenied) {
-          latInput.value = "";
-          lngInput.value = "";
-          Swal.fire("Location not saved", "", "info");
-        }
-      });
-    });
-  } else {
-    // If lat/lng already exist, render map directly
+      }})
+      
+  } if (alreadyHasCoords && mapEl) {
     const lat = parseFloat(latInput.value);
     const lng = parseFloat(lngInput.value);
-    if (mapEl && lat && lng) {
-      const map = L.map(mapEl).setView([lat, lng], 10);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-      }).addTo(map);
-      L.marker([lat, lng]).addTo(map).bindPopup("You are here").openPopup();
-    }
+
+    const map = L.map(mapEl).setView([lat, lng], 10);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    L.marker([lat, lng]).addTo(map).bindPopup("You are here").openPopup();
+
+    getCountry(lat, lng).then(code => {
+      const flag = flagFromCode(code);
+      if (flagSpan) flagSpan.textContent = flag;
+      if (locText) locText.textContent = `Country: ${code} ${flag}`;
+    }).catch(() => {
+      console.warn("Flag/country fallback failed");
+    });
   }
 
   // Flatpickr always
@@ -385,6 +375,23 @@ document.addEventListener("DOMContentLoaded", () => {
     flatpickr("#birthdateInput", {
       dateFormat: "Y-m-d",
       maxDate: "today"
+    });
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("updated") === "true") {
+    Swal.fire({
+      title: "Do you want to save the changes?",
+      showDenyButton: true,
+      showCancelButton: true,
+      confirmButtonText: "Save",
+      denyButtonText: "Don't save"
+    }).then(result => {
+      if (result.isConfirmed) {
+        Swal.fire("Saved!", "", "success");
+      } else if (result.isDenied) {
+        Swal.fire("Changes are not saved", "", "info");
+      }
     });
   }
 });
