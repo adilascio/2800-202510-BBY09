@@ -216,8 +216,12 @@ app.get('/friends', requireLogin, async (req, res) => {
   const currentUser = await usersCollection.findOne({ email: req.session.user.email });
   const search = req.query.search?.trim();
 
+  // Default to empty array if no received requests
+  const receivedRequestsRaw = currentUser.friendRequestsReceived || [];
+
+  // Fetch request user data
   const receivedRequests = await usersCollection.find({
-    username: { $in: currentUser.friendRequestsReceived || [] }
+    username: { $in: receivedRequestsRaw }
   }).toArray();
 
   const requests = receivedRequests.map(user => ({
@@ -256,7 +260,7 @@ app.get('/friends', requireLogin, async (req, res) => {
   res.render('friends', {
     pageTitle: 'Find Friends',
     friends: suggestedFriends,
-    receivedRequests: requests,
+    receivedRequests: requests, 
     requestCount: currentUser.friendRequestsReceived?.length || 0,
     searchQuery: search || '',
     showSuggested: !search
