@@ -62,13 +62,12 @@
                 <small class="text-secondary">@<%= friend.username %></small>
               </div>
             </div>
-            <a
-              href="/chat/<%= friend.username %>"
-              class="message-btn"
-              title="Message <%= friend.name %>"
-            >
+            <button 
+              onclick="location.href = '/chat/<%= friend.chatId %>'" 
+              class="message-btn" 
+              title="Message <%= friend.name %>">
               <i class="bi bi-chat-dots-fill"></i>
-            </a>
+            </button>
           </div>
         <% }); %>
       </div>

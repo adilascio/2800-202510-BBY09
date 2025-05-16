@@ -1,0 +1,9 @@
+<div class="chat-messages">
+    <% messages.forEach(function(message) { %>
+        <div class="chat-message <%= message.user === currentUser ? 'user' : '' %>">
+            <div class="msg"><%= message.text %></div>
+            <div class="meta"><%= message.user %></div>
+        </div>
+    <% }); %>
+</div>
+<% include('/templates/navbar.ejs')%>

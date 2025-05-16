@@ -202,6 +202,12 @@ app.get('/home', requireLogin, async (req, res) => {
 app.get('/friends', async (req, res) => {
   if (!req.session.user) return res.redirect('/login');
   const currentUser = await usersCollection.findOne({ email: req.session.user.email });
+
+if (!currentUser) {
+  console.error('User not found for session email:', req.session.user.email);
+  return res.redirect('/login');
+}
+
   const search = req.query.search?.trim();
 
   const receivedRequests = await usersCollection.find({
@@ -255,6 +261,12 @@ app.post('/send-request', requireLogin, async (req, res) => {
   const { targetUsername } = req.body;
   const currentUser = await usersCollection.findOne({ email: req.session.user.email });
 
+if (!currentUser) {
+  console.error('User not found for session email:', req.session.user.email);
+  return res.redirect('/login');
+}
+
+
   if (!targetUsername || targetUsername === currentUser.username) {
     return res.status(400).send('Invalid request');
   }
@@ -279,6 +291,13 @@ app.post('/accept-request', requireLogin, async (req, res) => {
   const { fromUsername } = req.body;
   const currentUser = await usersCollection.findOne({ email: req.session.user.email });
 
+if (!currentUser) {
+  console.error('User not found for session email:', req.session.user.email);
+  return res.redirect('/login');
+}
+
+
+  // Remove request and add each other as friends
   await usersCollection.updateOne(
     { username: currentUser.username },
     {
@@ -294,12 +313,31 @@ app.post('/accept-request', requireLogin, async (req, res) => {
     }
   );
 
+  // Generate a unique chatId for this friendship (sorted usernames, joined by '_')
+  const chatId = [currentUser.username, fromUsername].sort().join('_');
+
+  // Optionally, store chatId in both users' documents
+  await usersCollection.updateOne(
+    { username: currentUser.username },
+    { $addToSet: { chats: chatId } }
+  );
+  await usersCollection.updateOne(
+    { username: fromUsername },
+    { $addToSet: { chats: chatId } }
+  );
+
   res.redirect('/friends');
 });
 
 app.post('/cancel-request', requireLogin, async (req, res) => {
   const { targetUsername } = req.body;
   const currentUser = await usersCollection.findOne({ email: req.session.user.email });
+
+if (!currentUser) {
+  console.error('User not found for session email:', req.session.user.email);
+  return res.redirect('/login');
+}
+
 
   await usersCollection.updateOne(
     { username: targetUsername },
@@ -341,7 +379,14 @@ app.post('/profile', requireLogin, async (req, res) => {
 });
 
 app.get('/messages', requireLogin, async (req, res) => {
+  console.log('Session user:', req.session.user);
+
   const currentUser = await usersCollection.findOne({ email: req.session.user.email });
+
+  if (!currentUser) {
+    console.error('User not found for session email:', req.session.user.email);
+    return res.redirect('/login');
+  }
 
   const friendUsernames = currentUser.friends || [];
 
@@ -349,11 +394,15 @@ app.get('/messages', requireLogin, async (req, res) => {
     username: { $in: friendUsernames }
   }).toArray();
 
-  const friendData = friends.map(friend => ({
-    name: friend.name,
-    username: friend.username,
-    avatar: '/img/user1.png' // Replace with dynamic avatar if available
-  }));
+  const friendData = friends.map(friend => {
+    const chatId = [currentUser.username, friend.username].sort().join('_');
+    return {
+      name: friend.name,
+      username: friend.username,
+      avatar: '/img/user1.png',
+      chatId
+    };
+  });
 
   res.render('messages', {
     pageTitle: 'Messages',
@@ -362,6 +411,8 @@ app.get('/messages', requireLogin, async (req, res) => {
     activeTab: 'messages'
   });
 });
+
+
 
 app.get('/settings', requireLogin, async (req, res) => {
   const user = await usersCollection.findOne({ email: req.session.user.email });
@@ -440,6 +491,18 @@ app.post('/api/chat', requireLogin, async (req, res) => {
     console.error('Chat error:', err);
     res.status(500).json({ error: err.message });
   }
+});
+
+app.get('/chat/:chatId', requireLogin, async (req, res) => {
+  console.log('Chat ID:', req.params.chatId);
+  const chatId = req.params.chatId;
+  const chatHistory = req.session.chatHistory?.[chatId] || [];
+  res.render('chat', {
+    pageTitle: 'Messages with friendname' ,
+    user: req.session.user,
+    chatHistory,
+    chatId
+  });
 });
 
 // 404 handler
