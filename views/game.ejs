@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Daily Word Game</title>
+  <link rel="stylesheet" href="/css/index.css" />
+  <link rel="stylesheet" href="/css/game.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" />
+</head>
+
+<body>
+  <header class="d-flex justify-content-between align-items-center p-3 border-bottom">
+    <h4 class="m-0">Welcome to the Daily Game!</h4>
+
+    <div>
+      <!-- Add Friend Icon -->
+      <a href="/friends" style="position: absolute; top: 20px; right: 20px;" title="Add Friend">
+        <img src="/svgs/add-friend.svg" alt="Add Friend" width="30" height="30">
+      </a>
+    </div>
+
+    <div>
+      <!-- Profile Icon -->
+      <a href="/profile" style="position: absolute; top: 20px; left: 20px;" title="Create Your Profile">
+        <img src="/svgs/profile.svg" alt="Create Your Profile" width="30" height="30">
+      </a>
+    </div>
+  </header>
+
+  <main class="container text-center mt-5">
+    <h2>Daily Word Game</h2>
+
+    <!-- Language Selector -->
+    <div class="mb-3">
+      <label for="language-select" class="form-label fw-bold">Select Language:</label>
+      <select id="language-select" class="form-select w-auto mx-auto">
+        <option value="en">English</option>
+        <option value="fr">French</option>
+        <option value="es">Spanish</option>
+        <option value="de">German</option>
+        <option value="it">Italian</option>
+        <option value="ja">Japanese</option>
+      </select>
+    </div>
+
+    <p class="lead">Use the letters below to form as many words as you can. Each letter can be used only once!</p>
+
+    <div id="letter-bank" class="my-4 fs-3 fw-bold"></div>
+
+    <div class="d-flex justify-content-center mb-3">
+      <input type="text" id="word-input" class="form-control w-50" placeholder="Enter a word..." />
+      <button id="submit-word" class="btn btn-primary ms-3">Submit</button>
+    </div>
+
+    <div id="feedback" class="text-danger mb-3"></div>
+
+    <div id="found-words">
+      <h5>Words You Found:</h5>
+      <ul id="word-list" class="list-unstyled"></ul>
+    </div>
+  </main>
+
+  <!-- Persistent Nav Bar -->
+  <%- include('templates/navbar', { activeTab: 'puzzles' }) %>
+
+  <!-- Inject result from server -->
+  <script>
+    window.usedWordsFromServer = JSON.parse(`<%- JSON.stringify(typeof result !== 'undefined' ? result : []) %>`);
+  </script>
+  <!-- Load game logic -->
+  <script src="/js/game.js"></script>
+  
+</body>
+</html>

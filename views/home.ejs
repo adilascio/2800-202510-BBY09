@@ -6,51 +6,99 @@
   <title>Home</title>
   <link rel="stylesheet" href="/css/index.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
 </head>
 
 <body>
-  <header class="d-flex justify-content-between align-items-center p-3 border-bottom">
+  <header class="d-flex justify-content-center align-items-center p-3 border-bottom">
     <h4 class="m-0">Hi, <%= user.name %>!</h4>
-
-    <div>
-      <!-- Add Friend Icon Top Right -->
-      <a href="/friends" style="position: absolute; top: 20px; right: 20px;" title="Add Friend">
-        <img src="/svgs/add-friend.svg" alt="Add Friend" width="30" height="30">
-      </a>
-    </div>
-  
-    <div>
-      <a href="/profile" style="position: absolute; top: 20px; left: 20px;" title="Create Your Profile">
-        <img src="/svgs/profile.svg" alt="Create Your Profile" width="30" height="30">
-      </a>
-    </div>
-
   </header>
+
+  <div style="position: fixed; top: 20px; left: 20px; z-index: 999;">
+    <a href="/profile" title="Create Your Profile">
+      <img src="/svgs/profile.svg" alt="Create Your Profile" width="30" height="30">
+    </a>
+  </div>
+
+  <!-- TOP-RIGHT ICONS (Fixed to screen corner) -->
+  <div style="position: fixed; top: 20px; right: 20px; z-index: 999;">
+    <a href="/friends" title="Add Friend" class="position-relative me-3">
+      <img src="/svgs/add-friend.svg" alt="Add Friend" width="30" height="30">
+      <% if (requestCount > 0) { %>
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+          <%= requestCount %>
+        </span>
+      <% } %>
+    </a>
+  </div>
 
   <main class="container text-center mt-5">
     <p class="lead">Welcome to your LingoLink dashboard. Use the tabs below to get started.</p>
+    <div class="card mx-auto mt-4" style="max-width: 400px;">
+      <div class="card-body">
+        <h5 class="card-title text-primary">Login Streak 🔥</h5>
+        <div id="streakDisplay" class="text-center">
+          <p class="fs-3 mb-1">
+            <span id="streakCount"><%= user.streak || 0 %></span> Day<%= (user.streak || 0) === 1 ? '' : 's' %>
+          </p>
+          <p class="text-muted">
+            <% if (user.streak > 1) { %>
+              You're on a hot <%= user.streak %>-day streak! Keep it up!
+            <% } else if (user.streak === 1) { %>
+              Great start! Log in tomorrow to keep your streak going!
+            <% } else { %>
+              Log in tomorrow to start your streak!
+            <% } %>
+          </p>
+        </div>
+      </div>
+    </div>
+    <!-- Connect with Others Button -->
+    <div class="card mx-auto mt-4" style="max-width: 400px;">
+      <div class="card-body">
+        <h5 class="card-title text-primary">Get Started</h5>
+        <a href="/friends" class="btn btn-primary btn-lg w-100 animate__animated animate__pulse" id="connectButton">
+          Connect with Others to Start Practicing
+        </a>
+      </div>
+    </div>
   </main>
 
   <!-- Persistent Nav Bar -->
   <%- include('templates/navbar', { activeTab: 'home' }) %>
-</body>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<% if (showProfilePrompt) { %>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <% if (showProfilePrompt) { %>
+    <script>
+      Swal.fire({
+        title: "Create Your Profile",
+        text: "Would you like to create your profile now?",
+        icon: "info",
+        showCancelButton: true,
+        confirmButtonText: "Create Profile",
+        cancelButtonText: "Later"
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.location.href = "/profile";
+        }
+      });
+    </script>
+  <% } %>
   <script>
-    Swal.fire({
-      title: "Create Your Profile",
-      text: "Would you like to create your profile now?",
-      icon: "info",
-      showCancelButton: true,
-      confirmButtonText: "Create Profile",
-      cancelButtonText: "Later"
-    }).then((result) => {
-      if (result.isConfirmed) {
-        window.location.href = "/profile";
-      }
+    document.addEventListener('DOMContentLoaded', () => {
+      const streakDisplay = document.getElementById('streakDisplay');
+      streakDisplay.classList.add('animate__animated', 'animate__zoomIn');
+
+      setTimeout(() => {
+        streakDisplay.classList.remove('animate__animated', 'animate__zoomIn');
+      }, 500);
+
+      const connectButton = document.getElementById('connectButton');
+      setTimeout(() => {
+        connectButton.classList.remove('animate__animated', 'animate__pulse');
+      }, 1000);
     });
   </script>
-<% } %>
+</body>
 
 </html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Tutor</title>
+  <link rel="stylesheet" href="/css/index.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" />
+</head>
+
+ <%- include('templates/header', { pageTitle: 'AI Tutor' }) %>
+<body style="margin: 100px;">
+  <div class="container py-5" style="padding-bottom: 200px; margin-bottom: 100px;">
+    <h2 class="mb-4">AI Tutor Chat</h2>
+      <div class="card mx-auto mb-4 border-0" style="max-width: 300px;" style ="margin-bottom: 100px;">
+      <div class="card-body text-center">
+        <!-- Flag icon for the selected tutor -->
+        <img
+          src="/img/LingoTutor.png"
+          alt="LingoLink Tutor"
+          style="width:100%;"
+          class="mb-2"
+        />
+        <!-- Dropdown for choosing tutor -->
+        <select id="tutorSelect" class="form-select">
+          <option value="english" <%= selectedTutor==='english'? 'selected':'' %>>English Tutor </option> <a href="https://www.flaticon.com/free-icons/uk-flag" title="uk flag icons">Uk flag icons created by Freepik - Flaticon</a>
+          <option value="spanish" <%= selectedTutor==='spanish'? 'selected':'' %>>Spanish Tutor </option> <a href="https://www.flaticon.com/free-icons/spain" title="spain icons">Spain icons created by Freepik - Flaticon</a>
+          <option value="french"  <%= selectedTutor==='french'?  'selected':'' %>>French Tutor </option> <a href="https://www.flaticon.com/free-icons/france" title="france icons">France icons created by Freepik - Flaticon</a>
+        </select>
+      </div>
+    </div>
+    <!-- Chat window -->
+    <div id="chatWindow" class="border rounded p-3 mb-3" style="height: 400px; overflow-y: auto; background: #f8f9fa;">
+      <!-- messages are appended here -->
+    </div>
+
+    <!-- Input group -->
+    <div class="input-group">
+      <input
+        id="userInput"
+        type="text"
+        class="form-control"
+        placeholder="Type your message..."
+        aria-label="User message"
+      />
+      <button id="sendBtn" type="button" class="btn btn-primary">Send</button>
+    </div>
+  </div>
+</body>
+
+<%- include('templates/navbar') %>
+
+<script>
+  window.CHAT_HISTORY = <%= JSON.stringify(history) %>;
+</script>
+<script src="/js/tutor.js"></script>
