@@ -1,6 +1,3 @@
-// public/js/tutor.js
-// Front‑end logic for Tutor AI chat (moved from inline EJS script)
-
 document.addEventListener('DOMContentLoaded', () => {
   // 1) Welcome messages per tutor
   const welcomeMsgs = {
