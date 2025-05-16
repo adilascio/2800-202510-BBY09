@@ -34,6 +34,25 @@
 
   <main class="container text-center mt-5">
     <p class="lead">Welcome to your LingoLink dashboard. Use the tabs below to get started.</p>
+    <div class="card mx-auto mt-4" style="max-width: 400px;">
+      <div class="card-body">
+        <h5 class="card-title text-primary">Login Streak 🔥</h5>
+        <div id="streakDisplay" class="text-center">
+          <p class="fs-3 mb-1">
+            <span id="streakCount"><%= user.streak || 0 %></span> Day<%= (user.streak || 0) === 1 ? '' : 's' %>
+          </p>
+          <p class="text-muted">
+            <% if (user.streak > 1) { %>
+              You're on a hot <%= user.streak %>-day streak! Keep it up!
+            <% } else if (user.streak === 1) { %>
+              Great start! Log in tomorrow to keep your streak going!
+            <% } else { %>
+              Log in tomorrow to start your streak!
+            <% } %>
+          </p>
+        </div>
+      </div>
+    </div>
   </main>
 
   <!-- Persistent Nav Bar -->
@@ -56,6 +75,16 @@
         });
       </script>
       <% } %>
+      <script>
+        document.addEventListener('DOMContentLoaded', () => {
+          const streakDisplay = document.getElementById('streakDisplay');
+          streakDisplay.classList.add('animate__animated', 'animate__zoomIn');
+
+          setTimeout(() => {
+            streakDisplay.classList.remove('animate__animated', 'animate__zoomIn');
+          }, 500);
+        });
+      </script>
 </body>
 
 </html>
