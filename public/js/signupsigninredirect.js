@@ -1,6 +1,6 @@
 // Redirects to login.html
 document.getElementById("submit1").addEventListener("click", () => {
-    window.location.href = ('/home.ejs');
+    window.location.href = ('/home');
 });
 
 // Redirects to signup.html
