@@ -27,7 +27,8 @@
 <body class="container py-5">
   <h2 class="mb-4">Edit Your Profile</h2>
 
-  <form action="/profile" method="POST">
+    <form action="/profile" method="POST" enctype="multipart/form-data">
+
     <div class="mb-3">
       <label class="form-label">Name</label>
       <input type="text" class="form-control" name="name" value="<%= user.name %>" readonly>
@@ -83,6 +84,17 @@
     <input type="hidden" id="lng" name="lng" value="<%= user.location ? user.location.lng : '' %>" />
     
     <input type="hidden" name="shareLocation" value="on" />
+
+    <div class="mb-4">
+      <label class="form-label">Change Profile Picture</label>
+      <input type="file" name="profilePic" accept="image/png, image/jpeg" class="form-control" />
+    </div>
+    
+    <div class="mb-4">
+      <label class="form-label">Preview</label><br />
+      <img src="<%= user.profilePic || '/svgs/person.svg' %>" alt="Profile Picture"
+           style="width: 150px; height: 150px; object-fit: cover; border-radius: 12px;" />
+    </div>
 
     <button type="submit" class="btn btn-success">Save Profile</button>
   </form>

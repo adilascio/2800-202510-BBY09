@@ -395,3 +395,27 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+document.getElementById("avatarInput").addEventListener("change", async function () {
+  const file = this.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    Swal.fire({
+      title: "Your uploaded picture",
+      imageUrl: e.target.result,
+      imageAlt: "The uploaded picture",
+      confirmButtonText: "Looks good!"
+    });
+  };
+  reader.readAsDataURL(file);
+});
+
+function previewImage(event) {
+  const reader = new FileReader();
+  reader.onload = function () {
+    document.getElementById('profilePreview').src = reader.result;
+  };
+  reader.readAsDataURL(event.target.files[0]);
+}

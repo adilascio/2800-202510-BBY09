@@ -8,12 +8,37 @@ const bcrypt = require('bcryptjs');
 const MongoStore = require('connect-mongo');
 const { connectToDatabase } = require('./database');
 const { DateTime } = require('luxon');
+const multer = require('multer');
+const fs = require('fs');
+const uploadDir = path.join(__dirname, 'public', 'uploads');
 
 
 const app = express();
 const PORT = process.env.PORT || 8000;
 
 let db, usersCollection;
+
+
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, 'public/uploads/'),
+  filename: (req, file, cb) => {
+    const uniqueName = `${Date.now()}-${file.originalname}`;
+    cb(null, uniqueName);
+  }
+});
+
+const upload = multer({
+  storage,
+  fileFilter: (req, file, cb) => {
+    const allowed = ['image/jpeg', 'image/png'];
+    if (allowed.includes(file.mimetype)) cb(null, true);
+    else cb(new Error('Only .png or .jpeg images allowed.'));
+  }
+});
 
 // DB connect and HF client setup
 const { InferenceClient } = require('@huggingface/inference');
@@ -235,7 +260,8 @@ app.get('/friends', async (req, res) => {
     return {
       name: user.name,
       username: user.username,
-      avatar: '/img/user1.png',
+      avatar: user.profilePic || '/svgs/person.svg',
+      profilePic: user.profilePic || '/svgs/person.svg',
       description: `Learning ${user.targetLanguage}, Good at ${user.nativeLanguage}`,
       status: isFriend ? 'added' : isPending ? 'added' : ''
     };
@@ -314,7 +340,7 @@ app.get('/profile', requireLogin, async (req, res) => {
   res.render('profile', { user, languages });
 });
 
-app.post('/profile', requireLogin, async (req, res) => {
+app.post('/profile', requireLogin, upload.single('profilePic'), async (req, res) => {
   const update = {
     nativeLanguage: req.body.nativeLanguage,
     targetLanguage: req.body.targetLanguage,
@@ -323,22 +349,31 @@ app.post('/profile', requireLogin, async (req, res) => {
     shareLocation: true
   };
 
-  // Optional: Handle location if shared
+  // Location handling
   if (req.body.lat && req.body.lng) {
-    // update.shareLocation = true;
     update.location = {
       lat: parseFloat(req.body.lat),
       lng: parseFloat(req.body.lng)
     };
-  } 
+  }
+
+  // Profile picture path
+  if (req.file) {
+    update.profilePic = `/uploads/${req.file.filename}`;
+  }
 
   await usersCollection.updateOne(
     { email: req.session.user.email },
     { $set: update }
   );
 
+  // Update session
+  req.session.user.username = req.body.username;
+
   res.redirect('/profile?updated=true');
 });
+
+
 
 app.get('/messages', requireLogin, async (req, res) => {
   const currentUser = await usersCollection.findOne({ email: req.session.user.email });
@@ -352,7 +387,7 @@ app.get('/messages', requireLogin, async (req, res) => {
   const friendData = friends.map(friend => ({
     name: friend.name,
     username: friend.username,
-    avatar: '/img/user1.png' // Replace with dynamic avatar if available
+     profilePic: friend.profilePic || '/svgs/person.svg'
   }));
 
   res.render('messages', {
@@ -441,6 +476,7 @@ app.post('/api/chat', requireLogin, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // 404 handler
 app.use((req, res) => {

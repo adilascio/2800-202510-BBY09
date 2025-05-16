@@ -33,7 +33,7 @@
         <% receivedRequests.forEach(request => { %>
           <div class="friend-card mb-3">
             <div class="friend-info">
-              <img src="<%= request.avatar || '/img/user1.png' %>" class="friend-avatar" alt="<%= request.username %>">
+              <img src="<%= request.avatar || '/svgs/person.svg'  %>" class="friend-avatar" alt="<%= request.username %>">
               <div class="friend-text">
                 <h6><%= request.name %></h6>
                 <small><%= request.username %></small>
@@ -67,7 +67,7 @@
       <% friends.forEach(friend => { %>
         <div class="friend-card mb-3 friend-card-wrapper">
           <div class="friend-info">
-            <img src="<%= friend.avatar %>" class="friend-avatar" alt="<%= friend.username %>">
+            <img src="<%= friend.profilePic || '/svgs/person.svg' %>" class="friend-avatar" alt="<%= friend.username %>">
             <div class="friend-text">
               <h6><%= friend.name %></h6>
               <small><%= friend.username %><br><%= friend.description %></small>
