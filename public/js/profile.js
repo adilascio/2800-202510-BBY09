@@ -396,7 +396,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-document.getElementById("avatarInput").addEventListener("change", async function () {
+document.getElementById("avatarPromptInput").addEventListener("change", async function () {
   const file = this.files[0];
   if (!file) return;
 
@@ -419,3 +419,41 @@ function previewImage(event) {
   };
   reader.readAsDataURL(event.target.files[0]);
 }
+
+// Show the prompt field when "Generate Icon" is clicked
+  document.getElementById('generateIconBtn')
+    .addEventListener('click', () => {
+      document
+        .getElementById('generatePromptContainer')
+        .style.display = 'block';
+    });
+
+// Send the prompt → get seed → render DiceBear
+  createBtn.addEventListener('click', async () => {
+    const userPrompt = promptInput.value.trim();
+    if (!userPrompt) {
+      return alert('Please describe your avatar.');
+    }
+
+    createBtn.disabled   = true;
+    createBtn.textContent = 'Generating…';
+
+    try {
+      const res = await fetch('/api/avatar/describe', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ prompt: userPrompt })
+      });
+      if (!res.ok) throw new Error(`Status ${res.status}`);
+
+      const { seed } = await res.json();
+      // Build a DiceBear URL (using avataaars as an example)
+      avatarImg.src = `https://api.dicebear.com/9.x/avataaars/${encodeURIComponent(seed)}.svg`;
+    } catch (err) {
+      console.error('Avatar error:', err);
+      alert('Failed to generate avatar. Check console for details.');
+    } finally {
+      createBtn.disabled   = false;
+      createBtn.textContent = 'Create Icon';
+    }
+  });

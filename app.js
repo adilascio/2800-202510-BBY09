@@ -11,6 +11,8 @@ const { DateTime } = require('luxon');
 const multer = require('multer');
 const fs = require('fs');
 const uploadDir = path.join(__dirname, 'public', 'uploads');
+const { describeForDiceBear } = require('./aiAvatar');
+
 
 
 const app = express();
@@ -477,6 +479,19 @@ app.post('/api/chat', requireLogin, async (req, res) => {
   }
 });
 
+// AI avatar endpoint
+app.post('/api/avatar/describe', async (req, res) => {
+  const { prompt } = req.body;
+  if (!prompt?.trim()) return res.status(400).json({ error: 'Missing prompt.' });
+
+  try {
+    const opts = await describeForDiceBear(prompt);
+    res.json(opts);
+  } catch (err) {
+    console.error('Seed gen error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // 404 handler
 app.use((req, res) => {
