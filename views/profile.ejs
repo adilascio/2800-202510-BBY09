@@ -132,13 +132,8 @@
 </html>
 -->
 
-
-
-
 <!DOCTYPE html>
 <html lang="en">
-
-
 <head>
  <meta charset="UTF-8" />
  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -261,7 +256,7 @@
  padding: 4px 12px;
  border-radius: 10px;
  font-size: 0.9em;
- color: #333;
+ color: black;
  cursor: pointer;
 }
 
@@ -328,7 +323,41 @@
  margin: 1rem 0 2rem;
 }
 
+.btn-glow {
+  position: relative;
+  color: #fff;
+  background: linear-gradient(135deg, #6f00ff, #00d0ff);
+  border: none;
+  font-weight: bold;
+  font-size: 0.7em;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 0 12px rgba(111, 0, 255, 0.5), 0 0 24px rgba(0, 208, 255, 0.4);
+  transition: all 0.3s ease-in-out;
+}
 
+.btn-glow::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.25) 0%, transparent 60%);
+  animation: rotate 3s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.btn-glow:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(111, 0, 255, 0.8), 0 0 40px rgba(0, 208, 255, 0.6);
+}
 
 
 #flag-emoji {
@@ -361,6 +390,7 @@
        <img id="profilePreview" src="<%= user.profilePic || '/svgs/person.svg' %>" alt="Profile Picture" />
        <label for="avatarInput" class="photo-upload-btn">Choose File</label>
        <input type="file" name="profilePic" accept="image/png, image/jpeg" id="avatarInput" style="display: none;" />
+       <button type="button" id="generateIconBtn" class="btn btn-glow mt-2">✨ Generate Icon</button>
      </div>
 
 
@@ -483,6 +513,7 @@
  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+ <script src="/js/avatar-client.js"></script>
  <script src="/js/profile.js"></script>
  <script>
    flatpickr("#birthdateInput", { dateFormat: "Y-m-d", maxDate: "today" });
