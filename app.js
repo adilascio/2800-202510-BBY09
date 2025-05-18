@@ -238,7 +238,7 @@ app.get('/friends', async (req, res) => {
   const requests = receivedRequests.map(user => ({
     name: user.name,
     username: user.username,
-    avatar: '/img/user1.png',
+    profilePic: user.profilePic || '/svgs/person.svg',
     description: 'Sent you a friend request'
   }));
 
@@ -344,6 +344,7 @@ app.get('/profile', requireLogin, async (req, res) => {
 
 app.post('/profile', requireLogin, upload.single('profilePic'), async (req, res) => {
   const update = {
+    name: req.body.name,  
     nativeLanguage: req.body.nativeLanguage,
     targetLanguage: req.body.targetLanguage,
     username: req.body.username,
@@ -370,8 +371,8 @@ app.post('/profile', requireLogin, upload.single('profilePic'), async (req, res)
   );
 
   // Update session
+  req.session.user.name = req.body.name;
   req.session.user.username = req.body.username;
-
   res.redirect('/profile?updated=true');
 });
 
@@ -389,7 +390,7 @@ app.get('/messages', requireLogin, async (req, res) => {
   const friendData = friends.map(friend => ({
     name: friend.name,
     username: friend.username,
-     profilePic: friend.profilePic || '/svgs/person.svg'
+    profilePic: friend.profilePic || '/svgs/person.svg'
   }));
 
   res.render('messages', {
@@ -407,8 +408,12 @@ app.get('/settings', requireLogin, async (req, res) => {
 
 app.post('/settings', requireLogin, async (req, res) => {
   const shareLocation = req.body.shareLocation === 'on';
+  const passportAnimation = req.body.passportAnimation === 'on'; // ← new toggle value
 
-  const update = { shareLocation };
+  const update = {
+    shareLocation,
+    passportAnimation // ← add to update object
+  };
 
   if (shareLocation && req.body.lat && req.body.lng) {
     update.location = {
