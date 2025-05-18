@@ -11,6 +11,7 @@
   <link href="https://unpkg.com/leaflet/dist/leaflet.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
   <link rel="stylesheet" href="/css/profile.css">
+  <link rel="stylesheet" href="/css/navbar.css">
 
   <style>
     #flag-emoji {
@@ -21,11 +22,27 @@
       height: 300px;
       border-radius: 8px;
     }
+    body {
+     margin-bottom : 300px;
+    }
+
+    .page-content {
+   padding-bottom: 80px;
+   }
+
+
+    .container_py-5{
+    padding-bottom: 400px;
+    background-color: #040404;
+  }
   </style>
 </head>
 
-<body class="container py-5">
-  <h2 class="mb-4">Edit Your Profile</h2>
+<body class="container py-5 page-content">
+
+  <%- include('templates/header', { pageTitle: 'Profile' }) %>
+
+   <h2 class="mb-4">Edit Your Profile</h2>
 
     <form action="/profile" method="POST" enctype="multipart/form-data">
 
@@ -85,29 +102,72 @@
     
     <input type="hidden" name="shareLocation" value="on" />
 
-    <div class="mb-4">
-      <label class="form-label">Change Profile Picture</label>
-      <input type="file" name="profilePic" accept="image/png, image/jpeg" class="form-control" />
+      <div class="mb-4">
+    <label class="form-label d-block">Change Profile Picture</label>
+    <div class="d-flex align-items-center gap-2">
+      <input 
+        type="file"
+        id="profilePicInput" 
+        name="profilePic" 
+        accept="image/png, image/jpeg" 
+        class="form-control" 
+      />
     </div>
+      
+   </div>
+   </form>
+   
+   <button 
+        type="button" 
+        id="generateIconBtn" 
+        class="btn btn-outline-secondary" >Generate Icon</button>
+
+      
+
+    <!-- hidden prompt + action -->
+    <div 
+      id="generatePromptContainer" 
+      class="mt-2" 
+      style="display: none;">
+      <input 
+        type="text" 
+        id="avatarPromptInput" 
+        class="form-control mb-2" 
+        placeholder="Describe your icon (e.g. 'smiling cartoon avatar, pastel')" />
+      <button 
+        type="button" 
+        id="createIconBtn" 
+        class="btn btn-primary"
+      >Create Icon</button>
+    </div>
+
+   </form>
     
+
+
     <div class="mb-4">
       <label class="form-label">Preview</label><br />
-      <img src="<%= user.profilePic || '/svgs/person.svg' %>" alt="Profile Picture"
+      <img id="profilePreview" src="<%= user.profilePic || '/svgs/person.svg' %>" alt="Profile Picture"
            style="width: 150px; height: 150px; object-fit: cover; border-radius: 12px;" />
     </div>
 
     <button type="submit" class="btn btn-success">Save Profile</button>
-  </form>
-
-  <form action="/logout" method="GET" style="position: absolute; bottom: 100px; right: 20px;">
+    <form action="/logout" method="GET" style="position: absolute; bottom: 100px; right: 20px;">
     <button class="btn btn-outline-danger btn-sm">Logout</button>
   </form>
-
+  <img id="avatarDisplay"
+     src="<%= user.profilePic || '/svgs/person.svg' %>"
+     alt="Your avatar"
+     width="150" height="150"
+     class="rounded-circle mt-3" />
+  
   <!-- Scripts -->
+
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script src="/js/profile.js"></script>
+  <script src="/js/avatar-client.js"></script>
 
   <%- include('templates/navbar', { activeTab: 'messages' }) %>
 </body>
