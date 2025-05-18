@@ -31,9 +31,9 @@
       <div class="mb-3">
         <h5 class="fw-semibold text-start">Friend Requests</h5>
         <% receivedRequests.forEach(request => { %>
-          <div class="friend-card mb-3">
+          <div class="friend-card mb-3 friend-card-wrapper">
             <div class="friend-info">
-              <img src="<%= request.avatar || '/svgs/person.svg'  %>" class="friend-avatar" alt="<%= request.username %>">
+              <img src="<%= request.profilePic  ||  '/svgs/person.svg'  %>" class="friend-avatar" alt="<%= request.username %>">
               <div class="friend-text">
                 <h6><%= request.name %></h6>
                 <small><%= request.username %></small>
@@ -62,7 +62,7 @@
 
     <div class="friend-list" id="friendList">
       <% if (friends.length === 0) { %>
-        <p class="text-muted">No matching users found.</p>
+        <p class="text-muted">No Suggested Users found.</p>
       <% } %>
       <% friends.forEach(friend => { %>
         <div class="friend-card mb-3 friend-card-wrapper">
