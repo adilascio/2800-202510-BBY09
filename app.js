@@ -99,15 +99,17 @@ app.post('/login', async (req, res) => {
   });
 
   const { error } = schema.validate(req.body);
-  if (error) return res.render('login', { pageTitle: 'Log In', errorMessage: 'Invalid email or password format.' });
+  if (error) {
+    return res.status(400).json({ errorMessage: 'Invalid email or password format.' });
+  }
 
   const user = await usersCollection.findOne({ email: req.body.email });
   if (!user || !(await bcrypt.compare(req.body.password, user.password))) {
-    return res.render('login', { pageTitle: 'Log In', errorMessage: 'Incorrect email or password.' });
+    return res.status(401).json({ errorMessage: 'Incorrect email or password.' });
   }
 
   req.session.user = { name: user.name, email: user.email, username: user.username };
-  res.redirect('/home');
+  res.status(200).json({ success: true });
 });
 
 app.get('/signup', (req, res) => {
