@@ -8,12 +8,39 @@ const bcrypt = require('bcryptjs');
 const MongoStore = require('connect-mongo');
 const { connectToDatabase } = require('./database');
 const { DateTime } = require('luxon');
+const multer = require('multer');
+const fs = require('fs');
+const uploadDir = path.join(__dirname, 'public', 'uploads');
+const { describeForDiceBear } = require('./aiAvatar');
+
 
 
 const app = express();
 const PORT = process.env.PORT || 8000;
 
 let db, usersCollection;
+
+
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, 'public/uploads/'),
+  filename: (req, file, cb) => {
+    const uniqueName = `${Date.now()}-${file.originalname}`;
+    cb(null, uniqueName);
+  }
+});
+
+const upload = multer({
+  storage,
+  fileFilter: (req, file, cb) => {
+    const allowed = ['image/jpeg', 'image/png'];
+    if (allowed.includes(file.mimetype)) cb(null, true);
+    else cb(new Error('Only .png or .jpeg images allowed.'));
+  }
+});
 
 // DB connect and HF client setup
 const { InferenceClient } = require('@huggingface/inference');
@@ -72,15 +99,17 @@ app.post('/login', async (req, res) => {
   });
 
   const { error } = schema.validate(req.body);
-  if (error) return res.render('login', { pageTitle: 'Log In', errorMessage: 'Invalid email or password format.' });
+  if (error) {
+    return res.status(400).json({ errorMessage: 'Invalid email or password format.' });
+  }
 
   const user = await usersCollection.findOne({ email: req.body.email });
   if (!user || !(await bcrypt.compare(req.body.password, user.password))) {
-    return res.render('login', { pageTitle: 'Log In', errorMessage: 'Incorrect email or password.' });
+    return res.status(401).json({ errorMessage: 'Incorrect email or password.' });
   }
 
   req.session.user = { name: user.name, email: user.email, username: user.username };
-  res.redirect('/home');
+  res.status(200).json({ success: true });
 });
 
 app.get('/signup', (req, res) => {
@@ -217,7 +246,7 @@ if (!currentUser) {
   const requests = receivedRequests.map(user => ({
     name: user.name,
     username: user.username,
-    avatar: '/img/user1.png',
+    profilePic: user.profilePic || '/svgs/person.svg',
     description: 'Sent you a friend request'
   }));
 
@@ -241,7 +270,8 @@ if (!currentUser) {
     return {
       name: user.name,
       username: user.username,
-      avatar: '/img/user1.png',
+      avatar: user.profilePic || '/svgs/person.svg',
+      profilePic: user.profilePic || '/svgs/person.svg',
       description: `Learning ${user.targetLanguage}, Good at ${user.nativeLanguage}`,
       status: isFriend ? 'added' : isPending ? 'added' : ''
     };
@@ -352,8 +382,9 @@ app.get('/profile', requireLogin, async (req, res) => {
   res.render('profile', { user, languages });
 });
 
-app.post('/profile', requireLogin, async (req, res) => {
+app.post('/profile', requireLogin, upload.single('profilePic'), async (req, res) => {
   const update = {
+    name: req.body.name,  
     nativeLanguage: req.body.nativeLanguage,
     targetLanguage: req.body.targetLanguage,
     username: req.body.username,
@@ -361,22 +392,31 @@ app.post('/profile', requireLogin, async (req, res) => {
     shareLocation: true
   };
 
-  // Optional: Handle location if shared
+  // Location handling
   if (req.body.lat && req.body.lng) {
-    // update.shareLocation = true;
     update.location = {
       lat: parseFloat(req.body.lat),
       lng: parseFloat(req.body.lng)
     };
-  } 
+  }
+
+  // Profile picture path
+  if (req.file) {
+    update.profilePic = `/uploads/${req.file.filename}`;
+  }
 
   await usersCollection.updateOne(
     { email: req.session.user.email },
     { $set: update }
   );
 
+  // Update session
+  req.session.user.name = req.body.name;
+  req.session.user.username = req.body.username;
   res.redirect('/profile?updated=true');
 });
+
+
 
 app.get('/messages', requireLogin, async (req, res) => {
   console.log('Session user:', req.session.user);
@@ -400,8 +440,8 @@ app.get('/messages', requireLogin, async (req, res) => {
       name: friend.name,
       username: friend.username,
       avatar: '/img/user1.png',
-      chatId
-    };
+      chatId,
+      profilePic: friend.profilePic || '/svgs/person.svg'    };
   });
 
   res.render('messages', {
@@ -421,8 +461,12 @@ app.get('/settings', requireLogin, async (req, res) => {
 
 app.post('/settings', requireLogin, async (req, res) => {
   const shareLocation = req.body.shareLocation === 'on';
+  const passportAnimation = req.body.passportAnimation === 'on'; // ← new toggle value
 
-  const update = { shareLocation };
+  const update = {
+    shareLocation,
+    passportAnimation // ← add to update object
+  };
 
   if (shareLocation && req.body.lat && req.body.lng) {
     update.location = {
@@ -503,6 +547,20 @@ app.get('/chat/:chatId', requireLogin, async (req, res) => {
     chatHistory,
     chatId
   });
+});
+
+// AI avatar endpoint
+app.post('/api/avatar/describe', async (req, res) => {
+  const { prompt } = req.body;
+  if (!prompt?.trim()) return res.status(400).json({ error: 'Missing prompt.' });
+
+  try {
+    const opts = await describeForDiceBear(prompt);
+    res.json(opts);
+  } catch (err) {
+    console.error('Seed gen error:', err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // 404 handler
