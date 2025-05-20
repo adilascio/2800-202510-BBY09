@@ -18,7 +18,7 @@ const { describeForDiceBear } = require('./aiAvatar');
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-let db, usersCollection;
+let db, usersCollection, messagesCollection;
 
 
 if (!fs.existsSync(uploadDir)) {
@@ -56,6 +56,7 @@ const hf = new InferenceClient(HF_API_TOKEN);
     const dbResult = await connectToDatabase();
     db = dbResult.db;
     usersCollection = dbResult.users;
+    messagesCollection = db.collection('messages');
     app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
   } catch (err) {
     console.error('Failed to connect to MongoDB:', err);
@@ -538,16 +539,52 @@ app.post('/api/chat', requireLogin, async (req, res) => {
 });
 
 app.get('/chat/:chatId', requireLogin, async (req, res) => {
-  console.log('Chat ID:', req.params.chatId);
   const chatId = req.params.chatId;
-  const chatHistory = req.session.chatHistory?.[chatId] || [];
-  res.render('chat', {
-    pageTitle: 'Messages with friendname' ,
-    user: req.session.user,
-    chatHistory,
-    chatId
-  });
+  const currentUser = req.session.user.username;
+
+  try {
+    const messages = await messagesCollection
+      .find({ chatId })
+      .sort({ timestamp: 1 })
+      .toArray();
+
+    res.render('chat', {
+      pageTitle: `Chat with ${chatId.replace(currentUser, '').replace('_', '')}`,
+      user: req.session.user,
+      currentUser,
+      messages,
+      chatId
+    });
+  } catch (err) {
+    console.error('Error fetching chat:', err);
+    res.status(500).send('Error loading chat');
+  }
 });
+
+
+app.post('/send-message', requireLogin, async (req, res) => {
+  const { message, chatId } = req.body;
+  const sender = req.session.user.username;
+
+  if (!message || !chatId) {
+    return res.status(400).json({ error: "Missing chatId or message." });
+  }
+
+  try {
+    await messagesCollection.insertOne({
+      chatId,
+      user: sender,
+      text: message.trim(),
+      timestamp: new Date()
+    });
+
+    res.redirect(`/chat/${chatId}`);
+  } catch (err) {
+    console.error('Error saving message:', err);
+    res.status(500).json({ error: 'Failed to send message.' });
+  }
+});
+
 
 // AI avatar endpoint
 app.post('/api/avatar/describe', async (req, res) => {
