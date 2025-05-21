@@ -32,7 +32,6 @@
     .animation-container.hidden {
       opacity: 0;
       pointer-events: none;
-      display: none;
     }
 
     .welcome-text {
@@ -113,16 +112,6 @@
 </head>
 
 <body>
-  <div class="animation-container" id="animationContainer">
-    <div class="welcome-text">Hello!</div>
-    <div class="welcome-text">Bonjour!</div>
-    <div class="welcome-text">Hola!</div>
-    <div class="globe">
-      <div class="sparkle"></div>
-      <div class="sparkle"></div>
-      <div class="sparkle"></div>
-    </div>
-  </div>
   <header class="d-flex justify-content-center align-items-center p-3 border-bottom">
     <h4 class="m-0">Hi, <%= user.name %>!</h4>
   </header>
@@ -145,7 +134,31 @@
     </a>
   </div>
 
-  <main class="container text-center mt-5">
+   <% if (showAnimation) { %>
+    <div class="animation-container" id="animationContainer">
+    <div class="welcome-text">Hello!</div>
+    <div class="welcome-text">Bonjour!</div>
+    <div class="welcome-text">Hola!</div>
+    <div class="globe">
+      <div class="sparkle"></div>
+      <div class="sparkle"></div>
+      <div class="sparkle"></div>
+    </div>
+  </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const animationContainer = document.getElementById("animationContainer");
+      const mainContent = document.querySelector(".main-content");
+
+      setTimeout(() => {
+        animationContainer.classList.add("hidden");
+        mainContent.classList.add("visible");
+      }, 3000); 
+    });
+    </script>
+    <% } %>
+
+  <main class="container text-center mt-5 main-content <%= showAnimation ? '' : ' visible' %>">
     <p class="lead">Welcome to your LingoLink dashboard. Use the tabs below to get started.</p>
     <div class="card mx-auto mt-4" style="max-width: 400px;">
       <div class="card-body">
@@ -196,17 +209,6 @@
         }
       });
     </script>
-  <% } %>
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const animationContainer = document.getElementById("animationContainer");
-      const mainContent = document.querySelector(".main-content");
-
-      setTimeout(() => {
-        animationContainer.classList.add("hidden");
-        mainContent.classList.add("visible");
-      }, 3000); 
-    });
-    </script>
+    <% } %>
 </body>
 </html>

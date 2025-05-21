@@ -85,7 +85,7 @@ function requireLogin(req, res, next) {
 
 // Auth routes
 app.get('/', (req, res) => {
-  if (req.session.user) return res.redirect('/home');
+    if (req.session.user) return res.redirect('/home');
   res.render('index', { pageTitle: 'Welcome' });
 });
 
@@ -110,6 +110,7 @@ app.post('/login', async (req, res) => {
   }
 
   req.session.user = { name: user.name, email: user.email, username: user.username };
+  req.session.showAnimation = true;
   res.status(200).json({ success: true });
 });
 
@@ -209,6 +210,7 @@ app.post('/signup', async (req, res) => {
     email: req.body.email,
     username: req.body.username
   };
+  req.session.showAnimation = true;
   req.session.showProfilePrompt = true;
   res.redirect('/home');
 });
@@ -216,6 +218,8 @@ app.post('/signup', async (req, res) => {
 app.get('/home', requireLogin, async (req, res) => {
   const user = await usersCollection.findOne({ email: req.session.user.email });
   const requestCount = user.friendRequestsReceived?.length || 0;
+  const showAnimation = req.session.showAnimation;
+  req.session.showAnimation = false;
 
   const showProfilePrompt = req.session.showProfilePrompt;
   req.session.showProfilePrompt = false;
@@ -224,7 +228,8 @@ app.get('/home', requireLogin, async (req, res) => {
     user: req.session.user,
     activeTab: 'home',
     showProfilePrompt,
-    requestCount
+    requestCount,
+    showAnimation
   });
 });
 
