@@ -742,6 +742,22 @@ app.get('/chat/:chatId', requireLogin, async (req, res) => {
   }
 });
 
+app.get('/chat/:chatId/messages', requireLogin, async (req, res) => {
+  const chatId = req.params.chatId;
+
+  try {
+    const messages = await messagesCollection
+      .find({ chatId })
+      .sort({ timestamp: 1 })
+      .toArray();
+
+    res.json(messages); // return JSON for AJAX polling
+  } catch (err) {
+    console.error('Error fetching messages:', err);
+    res.status(500).json({ error: 'Failed to load messages.' });
+  }
+});
+
 
 app.post('/send-message', requireLogin, async (req, res) => {
   const { message, chatId } = req.body;
