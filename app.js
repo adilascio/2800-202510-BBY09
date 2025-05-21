@@ -457,24 +457,39 @@ app.get('/profile', requireLogin, async (req, res) => {
   });
 });
 
-app.post('/profile', requireLogin, async (req, res) => {
+app.post('/profile', requireLogin, upload.single('profilePic'), async (req, res) => {
   const currentUser = await usersCollection.findOne({ email: req.session.user.email });
 
-  // Update user’s basic profile info (without location)
-  const native = await languagesCollection.findOne({ name: req.body.nativeLanguage });
-  const target = await languagesCollection.findOne({ name: req.body.targetLanguage });
+  const update = {
+    username: req.body.username,
+    birthdate: req.body.birthdate ? new Date(req.body.birthdate) : null
+  };
+
+  if (req.body.nativeLanguage) {
+    const native = await languagesCollection.findOne({ name: req.body.nativeLanguage });
+    if (native) update.nativeLanguage = native.name;
+  }
+
+  if (req.body.targetLanguage) {
+    const target = await languagesCollection.findOne({ name: req.body.targetLanguage });
+    if (target) update.targetLanguage = target.name;
+  }
+
+  // Optional: handle avatar upload if you want
+  if (req.file) {
+    update.profilePic = `/uploads/${req.file.filename}`;
+  }
 
   await usersCollection.updateOne(
-    { email: req.session.user.email },
+    { _id: currentUser._id },
     { $set: update }
   );
 
   // Update session
-  req.session.user.name = req.body.name;
   req.session.user.username = req.body.username;
+  req.session.user.name = req.body.name;
   res.redirect('/profile?updated=true');
 });
-
 
 
 app.get('/messages', requireLogin, async (req, res) => {
