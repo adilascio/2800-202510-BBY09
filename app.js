@@ -18,7 +18,7 @@ const { describeForDiceBear } = require('./aiAvatar');
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-let db, usersCollection;
+let db, usersCollection, messagesCollection;
 
 
 if (!fs.existsSync(uploadDir)) {
@@ -56,6 +56,7 @@ const hf = new InferenceClient(HF_API_TOKEN);
     const dbResult = await connectToDatabase();
     db = dbResult.db;
     usersCollection = dbResult.users;
+    messagesCollection = db.collection('messages');
     app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
   } catch (err) {
     console.error('Failed to connect to MongoDB:', err);
@@ -84,7 +85,7 @@ function requireLogin(req, res, next) {
 
 // Auth routes
 app.get('/', (req, res) => {
-  if (req.session.user) return res.redirect('/home');
+    if (req.session.user) return res.redirect('/home');
   res.render('index', { pageTitle: 'Welcome' });
 });
 
@@ -109,6 +110,7 @@ app.post('/login', async (req, res) => {
   }
 
   req.session.user = { name: user.name, email: user.email, username: user.username };
+  req.session.showAnimation = true;
   res.status(200).json({ success: true });
 });
 
@@ -208,6 +210,7 @@ app.post('/signup', async (req, res) => {
     email: req.body.email,
     username: req.body.username
   };
+  req.session.showAnimation = true;
   req.session.showProfilePrompt = true;
   res.redirect('/home');
 });
@@ -215,6 +218,8 @@ app.post('/signup', async (req, res) => {
 app.get('/home', requireLogin, async (req, res) => {
   const user = await usersCollection.findOne({ email: req.session.user.email });
   const requestCount = user.friendRequestsReceived?.length || 0;
+  const showAnimation = req.session.showAnimation;
+  req.session.showAnimation = false;
 
   const showProfilePrompt = req.session.showProfilePrompt;
   req.session.showProfilePrompt = false;
@@ -223,7 +228,8 @@ app.get('/home', requireLogin, async (req, res) => {
     user: req.session.user,
     activeTab: 'home',
     showProfilePrompt,
-    requestCount
+    requestCount,
+    showAnimation
   });
 });
 
@@ -231,6 +237,12 @@ app.get('/home', requireLogin, async (req, res) => {
 app.get('/friends', async (req, res) => {
   if (!req.session.user) return res.redirect('/login');
   const currentUser = await usersCollection.findOne({ email: req.session.user.email });
+
+if (!currentUser) {
+  console.error('User not found for session email:', req.session.user.email);
+  return res.redirect('/login');
+}
+
   const search = req.query.search?.trim();
 
   const receivedRequests = await usersCollection.find({
@@ -285,6 +297,12 @@ app.post('/send-request', requireLogin, async (req, res) => {
   const { targetUsername } = req.body;
   const currentUser = await usersCollection.findOne({ email: req.session.user.email });
 
+if (!currentUser) {
+  console.error('User not found for session email:', req.session.user.email);
+  return res.redirect('/login');
+}
+
+
   if (!targetUsername || targetUsername === currentUser.username) {
     return res.status(400).send('Invalid request');
   }
@@ -309,6 +327,13 @@ app.post('/accept-request', requireLogin, async (req, res) => {
   const { fromUsername } = req.body;
   const currentUser = await usersCollection.findOne({ email: req.session.user.email });
 
+if (!currentUser) {
+  console.error('User not found for session email:', req.session.user.email);
+  return res.redirect('/login');
+}
+
+
+  // Remove request and add each other as friends
   await usersCollection.updateOne(
     { username: currentUser.username },
     {
@@ -324,12 +349,31 @@ app.post('/accept-request', requireLogin, async (req, res) => {
     }
   );
 
+  // Generate a unique chatId for this friendship (sorted usernames, joined by '_')
+  const chatId = [currentUser.username, fromUsername].sort().join('_');
+
+  // Optionally, store chatId in both users' documents
+  await usersCollection.updateOne(
+    { username: currentUser.username },
+    { $addToSet: { chats: chatId } }
+  );
+  await usersCollection.updateOne(
+    { username: fromUsername },
+    { $addToSet: { chats: chatId } }
+  );
+
   res.redirect('/friends');
 });
 
 app.post('/cancel-request', requireLogin, async (req, res) => {
   const { targetUsername } = req.body;
   const currentUser = await usersCollection.findOne({ email: req.session.user.email });
+
+if (!currentUser) {
+  console.error('User not found for session email:', req.session.user.email);
+  return res.redirect('/login');
+}
+
 
   await usersCollection.updateOne(
     { username: targetUsername },
@@ -381,7 +425,14 @@ app.post('/profile', requireLogin, upload.single('profilePic'), async (req, res)
 
 
 app.get('/messages', requireLogin, async (req, res) => {
+  console.log('Session user:', req.session.user);
+
   const currentUser = await usersCollection.findOne({ email: req.session.user.email });
+
+  if (!currentUser) {
+    console.error('User not found for session email:', req.session.user.email);
+    return res.redirect('/login');
+  }
 
   const friendUsernames = currentUser.friends || [];
 
@@ -389,11 +440,15 @@ app.get('/messages', requireLogin, async (req, res) => {
     username: { $in: friendUsernames }
   }).toArray();
 
-  const friendData = friends.map(friend => ({
-    name: friend.name,
-    username: friend.username,
-    profilePic: friend.profilePic || '/svgs/person.svg'
-  }));
+  const friendData = friends.map(friend => {
+    const chatId = [currentUser.username, friend.username].sort().join('_');
+    return {
+      name: friend.name,
+      username: friend.username,
+      avatar: '/img/user1.png',
+      chatId,
+      profilePic: friend.profilePic || '/svgs/person.svg'    };
+  });
 
   res.render('messages', {
     pageTitle: 'Messages',
@@ -402,6 +457,8 @@ app.get('/messages', requireLogin, async (req, res) => {
     activeTab: 'messages'
   });
 });
+
+
 
 app.get('/settings', requireLogin, async (req, res) => {
   const user = await usersCollection.findOne({ email: req.session.user.email });
@@ -485,6 +542,54 @@ app.post('/api/chat', requireLogin, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+app.get('/chat/:chatId', requireLogin, async (req, res) => {
+  const chatId = req.params.chatId;
+  const currentUser = req.session.user.username;
+
+  try {
+    const messages = await messagesCollection
+      .find({ chatId })
+      .sort({ timestamp: 1 })
+      .toArray();
+
+    res.render('chat', {
+      pageTitle: `Chat with ${chatId.replace(currentUser, '').replace('_', '')}`,
+      user: req.session.user,
+      currentUser,
+      messages,
+      chatId
+    });
+  } catch (err) {
+    console.error('Error fetching chat:', err);
+    res.status(500).send('Error loading chat');
+  }
+});
+
+
+app.post('/send-message', requireLogin, async (req, res) => {
+  const { message, chatId } = req.body;
+  const sender = req.session.user.username;
+
+  if (!message || !chatId) {
+    return res.status(400).json({ error: "Missing chatId or message." });
+  }
+
+  try {
+    await messagesCollection.insertOne({
+      chatId,
+      user: sender,
+      text: message.trim(),
+      timestamp: new Date()
+    });
+
+    res.redirect(`/chat/${chatId}`);
+  } catch (err) {
+    console.error('Error saving message:', err);
+    res.status(500).json({ error: 'Failed to send message.' });
+  }
+});
+
 
 // AI avatar endpoint
 app.post('/api/avatar/describe', async (req, res) => {
