@@ -273,7 +273,7 @@ if (!currentUser) {
   const search = req.query.search?.trim();
 
   const received = await friendshipsCollection.find({
-    friendId: currentUser._id,
+    userId: currentUser._id,
     status: 'received'
   }).toArray();
 
@@ -343,37 +343,94 @@ const suggestedFriends = results.map(user => {
   });
 });
 
+// app.post('/send-request', requireLogin, async (req, res) => {
+//   const { targetUsername } = req.body;
+//   const currentUser = await usersCollection.findOne({ email: req.session.user.email });
+
+// if (!currentUser) {
+//   console.error('User not found for session email:', req.session.user.email);
+//   return res.redirect('/login');
+// }
+
+
+//   if (!targetUsername || targetUsername === currentUser.username) {
+//     return res.status(400).send('Invalid request');
+//   }
+
+//   const targetUser = await usersCollection.findOne({ username: targetUsername });
+//   if (!targetUser) return res.status(404).send('User not found');
+
+//   await friendshipsCollection.insertOne({
+//     userId: currentUser._id,
+//     friendId: targetUser._id,
+//     status: 'sent'
+//   });
+
+//   await friendshipsCollection.insertOne({
+//     userId: targetUser._id,
+//     friendId: currentUser._id,
+//     status: 'received'
+//   });
+
+//   res.sendStatus(200);
+// });
+
+
 app.post('/send-request', requireLogin, async (req, res) => {
   const { targetUsername } = req.body;
   const currentUser = await usersCollection.findOne({ email: req.session.user.email });
 
-if (!currentUser) {
-  console.error('User not found for session email:', req.session.user.email);
-  return res.redirect('/login');
-}
-
+  if (!currentUser) {
+    console.error('User not found for session email:', req.session.user.email);
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
 
   if (!targetUsername || targetUsername === currentUser.username) {
-    return res.status(400).send('Invalid request');
+    console.warn('Invalid target username:', targetUsername);
+    return res.status(400).json({ error: 'Invalid request' });
   }
 
   const targetUser = await usersCollection.findOne({ username: targetUsername });
-  if (!targetUser) return res.status(404).send('User not found');
+  if (!targetUser) {
+    console.warn('Target user not found:', targetUsername);
+    return res.status(404).json({ error: 'User not found' });
+  }
 
-  await friendshipsCollection.insertOne({
-    userId: currentUser._id,
-    friendId: targetUser._id,
-    status: 'sent'
-  });
+  try {
+    // prevent duplicates
+    const existing = await friendshipsCollection.findOne({
+      userId: currentUser._id,
+      friendId: targetUser._id,
+      status: { $in: ['sent', 'received', 'accepted'] }
+    });
 
-  await friendshipsCollection.insertOne({
-    userId: targetUser._id,
-    friendId: currentUser._id,
-    status: 'received'
-  });
+    if (existing) {
+      console.log('Friend request or relation already exists');
+      return res.status(409).json({ error: 'Request already exists' });
+    }
 
-  res.sendStatus(200);
+    await friendshipsCollection.insertMany([
+      {
+        userId: currentUser._id,
+        friendId: targetUser._id,
+        status: 'sent'
+      },
+      {
+        userId: targetUser._id,
+        friendId: currentUser._id,
+        status: 'received'
+      }
+    ]);
+
+    console.log(`Friend request sent from ${currentUser.username} to ${targetUsername}`);
+    res.sendStatus(200);
+
+  } catch (err) {
+    console.error('Error sending friend request:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
+
 
 app.post('/accept-request', requireLogin, async (req, res) => {
   const { fromUsername } = req.body;
@@ -608,7 +665,6 @@ app.get('/tutor', requireLogin, (req, res) => {
   });
 });
 
-
 app.get('/profile/:username', requireLogin, async (req, res) => {
   const username = req.params.username;
   const currentUser = req.session.user.username;
@@ -628,7 +684,6 @@ app.get('/profile/:username', requireLogin, async (req, res) => {
     from
   });
 });
-
 
 // AI Chat endpoint
 app.post('/api/chat', requireLogin, async (req, res) => {
