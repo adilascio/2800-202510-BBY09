@@ -1,137 +1,3 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
- <meta charset="UTF-8" />
- <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
- <title>Your Profile</title>
-
-
-
-
- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
- <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
- <link href="https://unpkg.com/leaflet/dist/leaflet.css" rel="stylesheet" />
- <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
- <link rel="stylesheet" href="/css/profile.css">
-
-
- <style>
-   #flag-emoji {
-     font-family: "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
-     font-size: 1.2em;
-   }
-   #map {
-     height: 300px;
-     border-radius: 8px;
-   }
- </style>
-</head>
-
-
-<body class="container py-5">
- <h2 class="mb-4">Edit Your Profile</h2>
-
-
-   <form action="/profile" method="POST" enctype="multipart/form-data">
-
-
-   <div class="mb-3">
-     <label class="form-label">Name</label>
-     <input type="text" class="form-control" name="name" value="<%= user.name %>" readonly>
-   </div>
-
-
-   <div class="mb-3">
-     <label class="form-label">Email</label>
-     <input type="email" class="form-control" name="email" value="<%= user.email %>" readonly>
-   </div>
-
-
-   <div class="mb-3">
-     <label class="form-label">Username</label>
-     <input type="text" class="form-control" name="username" value="<%= user.username || '' %>" required>
-   </div>
-
-
-   <div class="mb-3" type="hidden">
-     <label class="form-label">Location:</label>
-     <h5 id="location"><i class="bi bi-geo-alt-fill text-danger me-2"></i><span id="flag-emoji"></span> Detecting...</h5>
-   </div>
-
-
-   <div class="mb-3">
-     <label class="form-label">Native Language</label>
-     <select name="nativeLanguage" class="form-select language-dropdown" required>
-       <option <%= !user.nativeLanguage ? 'selected' : '' %>>Choose</option>
-       <% languages.forEach(lang => { %>
-         <option value="<%= lang %>" <%= user.nativeLanguage === lang ? 'selected' : '' %>><%= lang %></option>
-       <% }) %>
-     </select>
-   </div>
-
-
-   <div class="mb-3">
-     <label class="form-label">Language You Want To Learn</label>
-     <select name="targetLanguage" class="form-select language-dropdown" required>
-       <option disabled <%= !user.targetLanguage ? 'selected' : '' %>>Choose...</option>
-       <% languages.forEach(lang => { %>
-         <option value="<%= lang %>" <%= user.targetLanguage === lang ? 'selected' : '' %>><%= lang %></option>
-       <% }) %>
-     </select>
-   </div>
-
-
-   <div class="mb-3">
-     <label class="form-label">Birthday</label>
-     <input type="text" id="birthdateInput" name="birthdate" class="form-control"
-            value="<%= user.birthdate ? user.birthdate.toISOString().split('T')[0] : '' %>"
-            placeholder="YYYY-MM-DD" />
-   </div>
-   <div class="mb-4">
-     <label class="form-label">Location Map</label>
-     <div id="map" class="mb-3"></div>
-   </div>
-  
-   <input type="hidden" id="lat" name="lat" value="<%= user.location ? user.location.lat : '' %>" />
-   <input type="hidden" id="lng" name="lng" value="<%= user.location ? user.location.lng : '' %>" />
-  
-   <input type="hidden" name="shareLocation" value="on" />
-
-
-   <div class="mb-4">
-     <label class="form-label">Change Profile Picture</label>
-     <input type="file" name="profilePic" accept="image/png, image/jpeg" class="form-control" />
-   </div>
-  
-   <div class="mb-4">
-     <label class="form-label">Preview</label><br />
-     <img src="<%= user.profilePic || '/svgs/person.svg' %>" alt="Profile Picture"
-          style="width: 150px; height: 150px; object-fit: cover; border-radius: 12px;" />
-   </div>
-
-
-   <button type="submit" class="btn btn-success">Save Profile</button>
- </form>
-
-
- <form action="/logout" method="GET" style="position: absolute; bottom: 100px; right: 20px;">
-   <button class="btn btn-outline-danger btn-sm">Logout</button>
- </form>
-
-
-
-
- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
- <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
- <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
- <script src="/js/profile.js"></script>
-
-
-
-</body>
-</html>
--->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -146,7 +12,6 @@
  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
  <link rel="stylesheet" href="/css/profile.css">
 
-
  <style>
    body {
      height: 100vh;
@@ -154,19 +19,20 @@
      background-color: #ffffff;
      font-family: Arial, sans-serif;
      padding-bottom: 140px;
+     overflow-x: hidden;
    }
 
-
  .passport-container {
- max-width: 680px;
- margin: 2rem auto;
- background-color: #e9e9fe;
- border-radius: 12px;
- overflow: hidden;
- min-height: 870px;
- display: flex;
- flex-direction: column;
- background-clip: padding-box;
+  width: 100%;
+  max-width: 680px;
+  aspect-ratio: 4 / 5.5;
+  margin: 2rem auto;
+  background-color: #e9e9fe;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background-clip: padding-box;
 
 
  /* Added realistic passport shadow */
@@ -176,14 +42,30 @@
    inset 0 -10px 12px rgba(0, 0, 0, 0.08);   /* bottom inner curve */
 }
 
+@media (max-width: 768px) {
+  .passport-container {
+    width: 100vw;          /* Full screen width */
+    margin: 0;             /* No side margin */
+    border-radius: 0;      /* Optional: flush with screen */
+    aspect-ratio: unset;   /* Let content determine height */
+  }
+}
+
+@media (max-width: 576px) {
+  .passport-container {
+    transform: scale(0.7);
+  }
+}
+
 
 .passport-map {
- height: 435px;
- width: 100%;
- border-top-left-radius: 12px;
- border-top-right-radius: 12px;
- overflow: hidden;
- padding: 0.5rem;
+  height: 40vh; /* replaces fixed 435px */
+  min-height: 300px; /* fallback minimum */
+  width: 100%;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  overflow: hidden;
+  padding: 0.5rem;
 
 
  /* Dual shadow for top and bottom edge simulation */
@@ -361,6 +243,12 @@
   box-shadow: 0 0 20px rgba(111, 0, 255, 0.8), 0 0 40px rgba(0, 208, 255, 0.6);
 }
 
+.swal2-glow-popup {
+  border-radius: 16px;
+  box-shadow: 0 0 20px rgba(111, 0, 255, 0.5), 0 0 40px rgba(0, 208, 255, 0.4);
+  background: linear-gradient(135deg, #6f00ff, #00d0ff);
+  color: white;
+}
 
 #flag-emoji {
    font-family: "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
@@ -392,7 +280,7 @@
        <img id="profilePreview" src="<%= user.profilePic || '/svgs/person.svg' %>" alt="Profile Picture" />
        <label for="avatarInput" class="photo-upload-btn">Choose File</label>
        <input type="file" name="profilePic" accept="image/png, image/jpeg" id="avatarInput" style="display: none;" />
-       <button type="button" id="generateIconBtn" class="btn btn-glow mt-2">✨ Generate Icon</button>
+       <button type="button" id="generateIconBtn" class="btn-glow mt-2">✨ Generate Icon</button>
      </div>
 
 

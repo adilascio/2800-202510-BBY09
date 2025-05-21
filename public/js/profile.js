@@ -88,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         }
       });
-    }, 2000); // <== 2-second delay
+    }, 5000); // <== 5-second delay
       
   } if (alreadyHasCoords && mapEl) {
     const lat = parseFloat(latInput.value);
