@@ -9,11 +9,10 @@ const MongoStore = require('connect-mongo');
 const { connectToDatabase } = require('./database');
 const { DateTime } = require('luxon');
 
-
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-let db, usersCollection;
+let db, usersCollection, locationsCollection, languagesCollection, friendshipsCollection, gameResultsCollection;
 
 // DB connect and HF client setup
 const { InferenceClient } = require('@huggingface/inference');
@@ -29,11 +28,18 @@ const hf = new InferenceClient(HF_API_TOKEN);
     const dbResult = await connectToDatabase();
     db = dbResult.db;
     usersCollection = dbResult.users;
-    app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+    locationsCollection = dbResult.locations;
+    languagesCollection = dbResult.languages;
+    friendshipsCollection = dbResult.friendships;
+    gameResultsCollection = dbResult.gameResults;
+    dailyStatsCollection = dbResult.dailyStats;
+
+    app.listen(PORT, () =>
+      console.log(`Server running on http://localhost:${PORT}`)
+    );
   } catch (err) {
     console.error('Failed to connect to MongoDB:', err);
     process.exit(1);
-    console.error("MongoDB Connection Failed:", err);
   }
 })();
 
@@ -97,21 +103,33 @@ app.get("/game", requireLogin, canPlayToday, (req, res) => {
 });
 
 app.post('/played-today', requireLogin, async (req, res) => {
-  const { result } = req.body;
-
   const todayPST = DateTime.now()
     .setZone('America/Los_Angeles')
     .toFormat('yyyy-MM-dd');
 
-  await usersCollection.updateOne(
-    { email: req.session.user.email },
+  const currentUser = await usersCollection.findOne({ email: req.session.user.email });
+  const { language, result } = req.body;
+
+  if (!language || !result) {
+    return res.status(400).send("Missing language or result data");
+  }
+
+  await gameResultsCollection.updateOne(
+  {
+    userId: currentUser._id,
+    date: todayPST,
+    language
+    },
     {
-      $set: {
-        lastPlayed: todayPST,
-        lastGameResult: result || []
-      }
+    $set: {
+      wordsFound: result,
+      score: result.length,
+      updatedAt: new Date()
     }
+    },
+    { upsert: true }
   );
+
 
   res.sendStatus(200);
 });
@@ -166,12 +184,7 @@ app.post('/signup', async (req, res) => {
     email: req.body.email,
     password: hashedPassword,
     username: req.body.username,
-    birthdate: new Date(req.body.birthdate), 
-    nativeLanguage: null,
-    targetLanguage: null,
-    friends: [],
-    friendRequestsSent: [],
-    friendRequestsReceived: []
+    birthdate: new Date(req.body.birthdate)
   });
 
   req.session.user = {
@@ -185,7 +198,12 @@ app.post('/signup', async (req, res) => {
 
 app.get('/home', requireLogin, async (req, res) => {
   const user = await usersCollection.findOne({ email: req.session.user.email });
-  const requestCount = user.friendRequestsReceived?.length || 0;
+  const requests = await friendshipsCollection.find({
+    friendId: user._id,
+    status: 'received'
+  }).toArray();
+
+  const requestCount = requests.length;
 
   const showProfilePrompt = req.session.showProfilePrompt;
   req.session.showProfilePrompt = false;
@@ -204,9 +222,16 @@ app.get('/friends', async (req, res) => {
   const currentUser = await usersCollection.findOne({ email: req.session.user.email });
   const search = req.query.search?.trim();
 
-  const receivedRequests = await usersCollection.find({
-    username: { $in: currentUser.friendRequestsReceived || [] }
+  const received = await friendshipsCollection.find({
+    friendId: currentUser._id,
+    status: 'received'
   }).toArray();
+
+  const senderIds = received.map(r => r.userId);
+  const receivedRequests = await usersCollection.find({
+    _id: { $in: senderIds }
+  }).toArray();
+
 
   const requests = receivedRequests.map(user => ({
     name: user.name,
@@ -229,23 +254,39 @@ app.get('/friends', async (req, res) => {
 
   const results = await usersCollection.find(query).toArray();
 
-  const suggestedFriends = results.map(user => {
-    const isPending = (currentUser.friendRequestsSent || []).includes(user.username);
-    const isFriend = (currentUser.friends || []).includes(user.username);
-    return {
+  const sentRequests = await friendshipsCollection.find({
+  userId: currentUser._id,
+  status: 'sent'
+}).toArray();
+
+const acceptedFriends = await friendshipsCollection.find({
+  userId: currentUser._id,
+  status: 'accepted'
+}).toArray();
+
+const sentUserIds = sentRequests.map(r => r.friendId.toString());
+const acceptedUserIds = acceptedFriends.map(r => r.friendId.toString());
+
+const suggestedFriends = results.map(user => {
+  const userIdStr = user._id.toString();
+  const isPending = sentUserIds.includes(userIdStr);
+  const isFriend = acceptedUserIds.includes(userIdStr);
+
+  return {
       name: user.name,
       username: user.username,
       avatar: '/img/user1.png',
       description: `Learning ${user.targetLanguage}, Good at ${user.nativeLanguage}`,
       status: isFriend ? 'added' : isPending ? 'added' : ''
-    };
-  });
+  };
+});
+
 
   res.render('friends', {
     pageTitle: 'Find Friends',
     friends: suggestedFriends,
     receivedRequests: requests,
-    requestCount: currentUser.friendRequestsReceived?.length || 0,
+    requestCount: requests.length,
     searchQuery: search || '',
     showSuggested: !search
   });
@@ -262,15 +303,17 @@ app.post('/send-request', requireLogin, async (req, res) => {
   const targetUser = await usersCollection.findOne({ username: targetUsername });
   if (!targetUser) return res.status(404).send('User not found');
 
-  await usersCollection.updateOne(
-    { username: targetUsername },
-    { $addToSet: { friendRequestsReceived: currentUser.username } }
-  );
+  await friendshipsCollection.insertOne({
+    userId: currentUser._id,
+    friendId: targetUser._id,
+    status: 'sent'
+  });
 
-  await usersCollection.updateOne(
-    { username: currentUser.username },
-    { $addToSet: { friendRequestsSent: targetUsername } }
-  );
+  await friendshipsCollection.insertOne({
+    userId: targetUser._id,
+    friendId: currentUser._id,
+    status: 'received'
+  });
 
   res.sendStatus(200);
 });
@@ -278,64 +321,102 @@ app.post('/send-request', requireLogin, async (req, res) => {
 app.post('/accept-request', requireLogin, async (req, res) => {
   const { fromUsername } = req.body;
   const currentUser = await usersCollection.findOne({ email: req.session.user.email });
+  const fromUser = await usersCollection.findOne({ username: fromUsername });
 
-  await usersCollection.updateOne(
-    { username: currentUser.username },
-    {
-      $pull: { friendRequestsReceived: fromUsername },
-      $addToSet: { friends: fromUsername }
-    }
-  );
+  if (!fromUser) return res.status(404).send("User not found");
 
-  await usersCollection.updateOne(
-    { username: fromUsername },
+  // ✅ Check if there’s a received request from this user
+  const receivedRequest = await friendshipsCollection.findOne({
+    userId: fromUser._id,
+    friendId: currentUser._id,
+    status: 'sent'
+  });
+
+  if (!receivedRequest) {
+    return res.status(403).send("No incoming friend request from this user.");
+  }
+
+  // ✅ Update both entries to accepted
+  await friendshipsCollection.updateMany(
     {
-      $addToSet: { friends: currentUser.username }
-    }
+      $or: [
+        { userId: currentUser._id, friendId: fromUser._id },
+        { userId: fromUser._id, friendId: currentUser._id }
+      ]
+    },
+    { $set: { status: 'accepted' } }
   );
 
   res.redirect('/friends');
 });
 
+
 app.post('/cancel-request', requireLogin, async (req, res) => {
   const { targetUsername } = req.body;
   const currentUser = await usersCollection.findOne({ email: req.session.user.email });
 
-  await usersCollection.updateOne(
-    { username: targetUsername },
-    { $pull: { friendRequestsReceived: currentUser.username } }
-  );
+  await friendshipsCollection.deleteMany({
+  $or: [
+    { userId: currentUser._id, friendId: targetUser._id },
+    { userId: targetUser._id, friendId: currentUser._id }
+  ],
+  status: { $in: ['sent', 'received'] }
+  });
+
 
   res.sendStatus(200);
 });
 
 app.get('/profile', requireLogin, async (req, res) => {
+  const { media } = await connectToDatabase();
   const user = await usersCollection.findOne({ email: req.session.user.email });
-  res.render('profile', { user, languages });
+
+  const profilePic = await media.findOne({
+    userId: user._id,
+    type: "profilePic"
+  });
+
+  res.render('profile', {
+    user,
+    languages,
+    profilePicUrl: profilePic?.url || '/uploads/default.jpg'
+  });
 });
 
 app.post('/profile', requireLogin, async (req, res) => {
-  const update = {
-    nativeLanguage: req.body.nativeLanguage,
-    targetLanguage: req.body.targetLanguage,
-    username: req.body.username,
-    birthdate: req.body.birthdate ? new Date(req.body.birthdate) : null,
-    shareLocation: true
-  };
+  const currentUser = await usersCollection.findOne({ email: req.session.user.email });
 
-  // Optional: Handle location if shared
-  if (req.body.lat && req.body.lng) {
-    // update.shareLocation = true;
-    update.location = {
-      lat: parseFloat(req.body.lat),
-      lng: parseFloat(req.body.lng)
-    };
-  } 
+  // Update user’s basic profile info (without location)
+  const native = await languagesCollection.findOne({ name: req.body.nativeLanguage });
+  const target = await languagesCollection.findOne({ name: req.body.targetLanguage });
 
   await usersCollection.updateOne(
-    { email: req.session.user.email },
-    { $set: update }
+    { _id: currentUser._id },
+    {
+      $set: {
+        nativeLanguageId: native?._id,
+        targetLanguageId: target?._id,
+        username: req.body.username,
+        birthdate: req.body.birthdate ? new Date(req.body.birthdate) : null
+      }
+    }
   );
+
+  // If location provided, save to normalized collection
+  if (req.body.lat && req.body.lng) {
+    await locationsCollection.updateOne(
+      { userId: currentUser._id },
+      {
+        $set: {
+          share: true,
+          lat: parseFloat(req.body.lat),
+          lng: parseFloat(req.body.lng),
+          updatedAt: new Date()
+        }
+      },
+      { upsert: true }
+    );
+  }
 
   res.redirect('/profile?updated=true');
 });
@@ -343,16 +424,21 @@ app.post('/profile', requireLogin, async (req, res) => {
 app.get('/messages', requireLogin, async (req, res) => {
   const currentUser = await usersCollection.findOne({ email: req.session.user.email });
 
-  const friendUsernames = currentUser.friends || [];
+  const accepted = await friendshipsCollection.find({
+    userId: currentUser._id,
+    status: 'accepted'
+  }).toArray();
+
+  const friendIds = accepted.map(r => r.friendId);
 
   const friends = await usersCollection.find({
-    username: { $in: friendUsernames }
+    _id: { $in: friendIds }
   }).toArray();
 
   const friendData = friends.map(friend => ({
     name: friend.name,
     username: friend.username,
-    avatar: '/img/user1.png' // Replace with dynamic avatar if available
+    avatar: '/img/user1.png' // Replace with dynamic avatar if needed
   }));
 
   res.render('messages', {
