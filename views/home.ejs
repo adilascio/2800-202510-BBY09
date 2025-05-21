@@ -122,7 +122,18 @@
     </a>
   </div>
 
-  <%- include('templates/header', { pageTitle: 'Home' }) %>
+  <div style="position: fixed; top: 20px; right: 20px; z-index: 999;">
+    <a href="/friends" title="Add Friend" class="position-relative me-3">
+      <img src="/svgs/add-friend.svg" alt="Add Friend" width="30" height="30">
+      <% if (requestCount> 0) { %>
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+          <%= requestCount %>
+        </span>
+        <% } %>
+    </a>
+  </div>
+
+  <!-- <%- include('templates/header', { pageTitle: 'Home' }) %> -->
 
    <% if (showAnimation) { %>
     <div class="animation-container" id="animationContainer">
