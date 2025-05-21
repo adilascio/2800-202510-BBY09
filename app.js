@@ -514,67 +514,42 @@ app.post('/send-request', requireLogin, async (req, res) => {
 });
 
 app.post('/accept-request', requireLogin, async (req, res) => {
-	const {
-		fromUsername
-	} = req.body;
-	const currentUser = await usersCollection.findOne({
-		email: req.session.user.email
-	});
-	const fromUser = await usersCollection.findOne({
-		username: fromUsername
-	});
+  const { fromUsername } = req.body;
+  const currentUser = await usersCollection.findOne({ email: req.session.user.email });
+  const fromUser = await usersCollection.findOne({ username: fromUsername });
 
-	if (!fromUser) return res.status(404).send("User not found");
+  if (!fromUser) return res.status(404).send("User not found");
 
-	// ✅ Check if there’s a received request from this user
-	const receivedRequest = await friendshipsCollection.findOne({
-		userId: fromUser._id,
-		friendId: currentUser._id,
-		status: 'sent'
-	});
+  // ✅ Check if there’s a received request from this user
+  const receivedRequest = await friendshipsCollection.findOne({
+    userId: currentUser._id,
+    friendId: fromUser._id,
+    status: 'received'
+  });
 
-	if (!receivedRequest) {
-		return res.status(403).send("No incoming friend request from this user.");
-	}
+  if (!receivedRequest) {
+    return res.status(403).send("No incoming friend request from this user.");
+  }
 
-	// ✅ Update both entries to accepted
-	await friendshipsCollection.updateMany({
-		$or: [{
-				userId: currentUser._id,
-				friendId: fromUser._id
-			},
-			{
-				userId: fromUser._id,
-				friendId: currentUser._id
-			}
-		]
-	}, {
-		$set: {
-			status: 'accepted'
-		}
-	});
+  // ✅ Update both entries to accepted
+  await friendshipsCollection.updateMany(
+    {
+      $or: [
+        { userId: currentUser._id, friendId: fromUser._id },
+        { userId: fromUser._id, friendId: currentUser._id }
+      ]
+    },
+    { $set: { status: 'accepted' } }
+  );
 
-	// Generate a unique chatId for this friendship (sorted usernames, joined by '_')
-	const chatId = [currentUser.username, fromUsername].sort().join('_');
+  // Optional: store chatId
+  const chatId = [currentUser.username, fromUsername].sort().join('_');
+  await usersCollection.updateOne({ username: currentUser.username }, { $addToSet: { chats: chatId } });
+  await usersCollection.updateOne({ username: fromUsername }, { $addToSet: { chats: chatId } });
 
-	// Optionally, store chatId in both users' documents
-	await usersCollection.updateOne({
-		username: currentUser.username
-	}, {
-		$addToSet: {
-			chats: chatId
-		}
-	});
-	await usersCollection.updateOne({
-		username: fromUsername
-	}, {
-		$addToSet: {
-			chats: chatId
-		}
-	});
-
-	res.redirect('/friends');
+  res.redirect('/friends');
 });
+
 
 app.post('/cancel-request', requireLogin, async (req, res) => {
 	const targetUser = await usersCollection.findOne({
