@@ -1,54 +1,158 @@
 <!DOCTYPE html>
+<html lang="en">
+
 <head>
+  <!-- META -->
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>AI Tutor</title>
+
+  <!-- CSS -->
   <link rel="stylesheet" href="/css/index.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" />
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css"
+  />
+
+  <!-- INLINE STYLES -->
+  <style>
+    /* Accent palette */
+    :root {
+      --accent-cyan: #17caff;
+      --accent-cyan-dark: #0dbdcf;
+    }
+
+    /* Page background: white → orange */
+    body {
+      margin: 0;
+      background: linear-gradient(to bottom, #ffffff, #ffa500);
+    }
+
+    /* Soft gradient utility, cyan-tinged */
+    .gradient-soft {
+      background: linear-gradient(
+        to bottom right,
+        #f0fdff,
+        #e6f7ff
+      ) !important;
+    }
+
+    /* Frosted-glass card */
+    .card-transparent {
+      background-color: rgba(255, 255, 255, 0.5) !important;
+      backdrop-filter: blur(8px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.3) !important;
+      border-radius: 0.5rem !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+      padding: 1rem;
+    }
+
+    /* Cyan button */
+    .btn-accent {
+      background-color: var(--accent-cyan) !important;
+      border-color: var(--accent-cyan) !important;
+      color: #fff !important;
+    }
+    .btn-accent:hover {
+      background-color: var(--accent-cyan-dark) !important;
+      border-color: var(--accent-cyan-dark) !important;
+    }
+
+    /* Cyan text helper */
+    .text-accent {
+      color: var(--accent-cyan) !important;
+    }
+
+    /* ── New: smaller tutor-selector card ─────────────────────────── */
+    .tutor-selector-card {
+      max-width: 180px !important;
+    }
+    .tutor-selector-card .card-body {
+      padding: 0.25rem !important;
+    }
+    .tutor-selector-card img {
+      width: 100%;
+      height: auto;
+    }
+    .tutor-selector-card .form-select {
+      font-size: 0.85rem;
+      padding: 0.25rem 0.5rem;
+    }
+
+
+  </style>
 </head>
 
- <%- include('templates/header', { pageTitle: 'AI Tutor' }) %>
-<body style="margin-bottom: 400px;">
-  <div class="container py-5" style="padding-bottom: 200px; margin-bottom: 100px;">
-    <h2 class="mb-4">AI Tutor Chat</h2>
-      <div class="card mx-auto mb-4 border-0" style="max-width: 300px;" style ="margin-bottom: 100px;">
-      <div class="card-body text-center">
-        <!-- Flag icon for the selected tutor -->
-        <img
-          src="/img/LingoTutor.png"
-          alt="LingoLink Tutor"
-          style="width:100%;"
-          class="mb-2"
-        />
-        <!-- Dropdown for choosing tutor -->
-        <select id="tutorSelect" class="form-select">
-          <option value="english" <%= selectedTutor==='english'? 'selected':'' %>>English Tutor </option> <a href="https://www.flaticon.com/free-icons/uk-flag" title="uk flag icons">Uk flag icons created by Freepik - Flaticon</a>
-          <option value="spanish" <%= selectedTutor==='spanish'? 'selected':'' %>>Spanish Tutor </option> <a href="https://www.flaticon.com/free-icons/spain" title="spain icons">Spain icons created by Freepik - Flaticon</a>
-          <option value="french"  <%= selectedTutor==='french'?  'selected':'' %>>French Tutor </option> <a href="https://www.flaticon.com/free-icons/france" title="france icons">France icons created by Freepik - Flaticon</a>
-        </select>
+<body>
+  <!-- HEADER with soft gradient -->
+  <div class="gradient-soft">
+    <%- include('templates/header', { pageTitle: 'AI Tutor' }) %>
+  </div>
+
+  <!-- MAIN: centered responsive card -->
+  <main class="container-fluid d-flex justify-content-center align-items-start py-5">
+    <div class="col-12 col-md-8 col-lg-6">
+      <div class="card card-transparent">
+        <div class="card-body">
+
+          <!-- Tutor Selector Card (now much smaller) -->
+          <div class="card mb-4 gradient-soft mx-auto tutor-selector-card">
+            <div class="card-body text-center">
+              <!-- Tutor Image -->
+              <img
+                src="/img/LingoTutor.png"
+                alt="LingoLink Tutor"
+                class="img-fluid"
+              />
+
+              <!-- Dropdown -->
+              <select id="tutorSelect" class="form-select">
+                <option value="english" <%= selectedTutor==='english'? 'selected':'' %>>
+                  English Tutor
+                </option>
+                <option value="spanish" <%= selectedTutor==='spanish'? 'selected':'' %>>
+                  Spanish Tutor
+                </option>
+                <option value="french" <%= selectedTutor==='french'? 'selected':'' %>>
+                  French Tutor
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Chat window -->
+          <div
+            id="chatWindow"
+            class="border rounded p-3 mb-4"
+            style="height: 400px; overflow-y: auto; background: #f8f9fa;"
+          ></div>
+
+          <!-- Input + Send -->
+          <div class="input-group">
+            <input
+              id="userInput"
+              type="text"
+              class="form-control"
+              placeholder="Type your message..."
+              aria-label="User message"
+            />
+            <button id="sendBtn" class="btn btn-accent" type="button">
+              Send
+            </button>
+          </div>
+
+        </div>
       </div>
     </div>
-    <!-- Chat window -->
-    <div id="chatWindow" class="border rounded p-3 mb-3" style="height: 400px; overflow-y: auto; background: #f8f9fa;">
-      <!-- messages are appended here -->
-    </div>
+  </main>
 
-    <!-- Input group -->
-    <div class="input-group">
-      <input
-        id="userInput"
-        type="text"
-        class="form-control"
-        placeholder="Type your message..."
-        aria-label="User message"
-      />
-      <button id="sendBtn" type="button" class="btn btn-primary">Send</button>
-    </div>
-  </div>
+  <!-- NAVBAR -->
+  <%- include('templates/navbar', { activeTab: 'tutor' }) %>
+
+  <!-- SCRIPTS -->
+  <script>
+    window.CHAT_HISTORY = <%= JSON.stringify(history) %>;
+  </script>
+  <script src="/js/tutor.js"></script>
 </body>
-
-<%- include('templates/navbar') %>
-
-<script>
-  window.CHAT_HISTORY = <%= JSON.stringify(history) %>;
-</script>
-<script src="/js/tutor.js"></script>
+</html>
