@@ -57,7 +57,7 @@
 }
 
 .passport-map {
-  height: 37.5vh; /* replaces fixed 435px */
+  height: 46.5vh; /* replaces fixed 435px */
   min-height: 300px; /* fallback minimum */
   width: 100%;
   border-top-left-radius: 12px;
@@ -132,28 +132,38 @@
 }  
 
 .info-section {
-      flex: 1;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      padding-left: 2rem;
+ flex: 1;
+ display: grid;
+ grid-template-columns: 1fr 1fr;
+ column-gap: 30px;
+ row-gap: 16px;
+ padding-left: 2rem;
+}
+
+
+.info-label {
+ font-style: italic;
+ font-size: 13px;
+ color: black;
+}
+
+.info-value
+ {      
+    font-weight: bold;
     }
-    .info-label {
-      font-style: italic;
-      font-size: 13px;
-      color: #333;
-    }
-    .info-value {
-      font-weight: bold;
-    }
-    .passport-code {
-      font-family: monospace;
-      font-size: 14px;
-      margin-top: 2rem;
-      margin-left: 1rem;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
+ 
+.passport-code {
+ font-family: monospace;
+ font-size: 15.2px; /* or 16px — increase as needed */
+ font-weight: bold;
+ margin-top: 2rem; /* pushes it down */
+ margin-left: 1rem;
+ margin-right: 1rem;
+ white-space: pre-wrap;
+ word-break: break-word;
+ text-align: left;
+}
+
   </style>
 </head>
 
@@ -167,7 +177,7 @@
       <div class="passport-title-line">
         <span class="passport-title">PASSPORT</span>
         <span id="location">
-          <span id="country-code">--</span> <span id="flag-emoji">🌍</span>
+          <span id="country-code">N/A</span> <span id="flag-emoji">🌍</span>
         </span>
       </div>
     </div>
@@ -212,13 +222,27 @@
 
   <div class="text-center mt-3">
     <% if (!isOwnProfile) { %>
-      <a href="/chat/<%= [user2.username, user2.username].sort().join('_') %>" class="btn btn-primary">
-        Message <%= user2.name.split(' ')[0] %>
-      </a>
+      <% if (from === 'messages') { %>
+        <a href="/chat/<%= [user2.username, user2.username].sort().join('_') %>" class="btn btn-primary">
+          Message <%= user2.name.split(' ')[0] %>
+        </a>
+      <% } else if (from === 'friends') { %>
+        <form action="/add-friend/<%= user2._id %>" method="POST" style="display:inline;">
+          <button type="submit" class="btn btn-success">
+            Add <%= user2.name.split(' ')[0] %>
+          </button>
+        </form>
+      <% } else { %>
+        <!-- fallback: just show username or disable button -->
+        <button class="btn btn-secondary" disabled>
+          View Only
+        </button>
+      <% } %>
     <% } else { %>
       <a href="/profile" class="btn btn-secondary">Edit Your Profile</a>
     <% } %>
   </div>
+  
 
   <div id="videoOverlay" style="
   position: fixed;

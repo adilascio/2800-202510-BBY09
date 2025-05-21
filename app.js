@@ -612,7 +612,8 @@ app.get('/tutor', requireLogin, (req, res) => {
 app.get('/profile/:username', requireLogin, async (req, res) => {
   const username = req.params.username;
   const currentUser = req.session.user.username;
-
+  const from = req.query.from || '';
+  
   // Prevent viewing your own profile via public route
   if (username === currentUser) {
     return res.redirect('/profile');
@@ -623,7 +624,8 @@ app.get('/profile/:username', requireLogin, async (req, res) => {
 
   res.render('public-profile', {
     user2: user, // send as `user2` to avoid collision
-    isOwnProfile: false
+    isOwnProfile: false,
+    from
   });
 });
 
