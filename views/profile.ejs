@@ -359,6 +359,12 @@
   box-shadow: 0 0 20px rgba(111, 0, 255, 0.8), 0 0 40px rgba(0, 208, 255, 0.6);
 }
 
+.swal2-glow-popup {
+  border-radius: 16px;
+  box-shadow: 0 0 20px rgba(111, 0, 255, 0.5), 0 0 40px rgba(0, 208, 255, 0.4);
+  background: linear-gradient(135deg, #6f00ff, #00d0ff);
+  color: white;
+}
 
 #flag-emoji {
    font-family: "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
@@ -390,7 +396,7 @@
        <img id="profilePreview" src="<%= user.profilePic || '/svgs/person.svg' %>" alt="Profile Picture" />
        <label for="avatarInput" class="photo-upload-btn">Choose File</label>
        <input type="file" name="profilePic" accept="image/png, image/jpeg" id="avatarInput" style="display: none;" />
-       <button type="button" id="generateIconBtn" class="btn btn-glow mt-2">✨ Generate Icon</button>
+       <button type="button" id="generateIconBtn" class="btn-glow mt-2">✨ Generate Icon</button>
      </div>
 
 
