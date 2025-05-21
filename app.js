@@ -240,15 +240,23 @@ app.get('/home', requireLogin, async (req, res) => {
   const showAnimation = req.session.showAnimation;
   req.session.showAnimation = false;
 
+  
+  const today = DateTime.now().setZone('Canada/Vancouver').toFormat('yyyy-MM-dd');
+  const hasChattedToday = user.lastChatDate === today;
+  const hasPlayedToday = user.lastPlayed === today;
+
   const showProfilePrompt = req.session.showProfilePrompt;
   req.session.showProfilePrompt = false;
   res.render('home', {
     pageTitle: 'LingoLink Home',
     user: req.session.user,
+    user,
     activeTab: 'home',
     showProfilePrompt,
     requestCount,
-    showAnimation
+    showAnimation,
+    hasChattedToday,
+    hasPlayedToday
   });
 });
 
