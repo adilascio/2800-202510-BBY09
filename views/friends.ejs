@@ -67,7 +67,9 @@
       <% friends.forEach(friend => { %>
         <div class="friend-card mb-3 friend-card-wrapper">
           <div class="friend-info">
+            <a href="/profile/<%= friend.username %>">
             <img src="<%= friend.profilePic || '/svgs/person.svg' %>" class="friend-avatar" alt="<%= friend.username %>">
+            </a>
             <div class="friend-text">
               <h6><%= friend.name %></h6>
               <small><%= friend.username %><br><%= friend.description %></small>

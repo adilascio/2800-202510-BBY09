@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= user2.name %>'s Profile</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet" />
+  <link href="https://unpkg.com/leaflet/dist/leaflet.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/profile.css" />
+
+  <style>
+  body {
+     height: 100vh;
+     margin-top: 20%;
+     background-color: #ffffff;
+     font-family: Arial, sans-serif;
+     padding-bottom: 140px;
+     overflow-x: hidden;
+   }
+
+ .passport-container {
+  width: 100%;
+  max-width: 680px;
+  aspect-ratio: 4 / 5.5;
+  margin: 2rem auto;
+  background-color: #e9e9fe;
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background-clip: padding-box;
+
+
+ /* Added realistic passport shadow */
+ box-shadow:
+   0 12px 20px rgba(0, 0, 0, 0.25),         /* main drop shadow */
+   inset 0 10px 12px rgba(0, 0, 0, 0.25),     /* top inner curve */
+   inset 0 -10px 12px rgba(0, 0, 0, 0.08);   /* bottom inner curve */
+}
+
+@media (max-width: 768px) {
+  .passport-container {
+    width: 100vw;          /* Full screen width */
+    margin: 0;             /* No side margin */
+    border-radius: 0;      /* Optional: flush with screen */
+    aspect-ratio: unset;   /* Let content determine height */
+  }
+}
+
+@media (max-width: 576px) {
+  .passport-container {
+    transform: scale(0.7);
+  }
+}
+
+.passport-map {
+  height: 37.5vh; /* replaces fixed 435px */
+  min-height: 300px; /* fallback minimum */
+  width: 100%;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  overflow: hidden;
+  padding: 0.5rem;
+
+ /* Dual shadow for top and bottom edge simulation */
+   box-shadow:
+   inset 0px -6px 12px -4px rgba(0, 0, 0, 0.25),  /* bottom shadow */
+   inset 0px 6px 12px -4px rgba(0, 0, 0, 0.18);    /* top shadow */
+   background-clip: padding-box;  /* top edge (info to map) */
+}
+
+#map {
+ height: 100%;
+ margin: 0.2 0.2rem; /* horizontal margins (left & right) */
+ border-radius: 8px;
+}
+
+.passport-header {
+ background-color: #e9e9fe;
+ padding: 1.2rem 2rem 0;
+
+
+ /* Only shadows on top, left, and right */
+ box-shadow:
+   inset 0px 6px 10px -5px rgba(0, 0, 0, 0.2),   /* top */
+   inset 6px 0px 10px -5px rgba(0, 0, 0, 0.2),   /* left */
+   inset -6px 0px 10px -5px rgba(0, 0, 0, 0.2);  /* right */
+}
+
+
+.passport-title-line {
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+ padding-bottom: 1rem;
+ font-weight: bold;
+ font-size: 14px;
+ text-transform: uppercase;
+}
+
+
+.passport-body {
+ display: flex;
+ padding: 2rem;
+ flex-wrap: wrap;
+}
+
+
+.photo-section {
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+}
+
+
+.photo-section img {
+ width: 200px;
+ height: 220px;
+ object-fit: cover;
+ border-radius: 6px;
+ margin-bottom: 0.5rem;
+
+
+ /* Add soft shadow to mimic a printed photo or embossed placeholder */
+ box-shadow:
+   0 4px 8px rgba(0, 0, 0, 0.2),     /* subtle outer shadow */
+   0 2px 4px rgba(0, 0, 0, 0.1),     /* extra depth */
+   inset 0 0 4px rgba(0, 0, 0, 0.08);
+}  
+
+.info-section {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      padding-left: 2rem;
+    }
+    .info-label {
+      font-style: italic;
+      font-size: 13px;
+      color: #333;
+    }
+    .info-value {
+      font-weight: bold;
+    }
+    .passport-code {
+      font-family: monospace;
+      font-size: 14px;
+      margin-top: 2rem;
+      margin-left: 1rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="passport-container">
+    <div class="passport-map">
+      <div id="map"></div>
+    </div>
+
+    <div class="passport-header">
+      <div class="passport-title-line">
+        <span class="passport-title">PASSPORT</span>
+        <span id="location">
+          <span id="country-code">--</span> <span id="flag-emoji">🌍</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="passport-body">
+      <div class="photo-section text-center mb-3">
+        <img src="<%= user2.profilePic || '/svgs/person.svg' %>" alt="Profile Picture" />
+      </div>
+
+      <div class="info-section">
+        <div>
+          <div class="info-label">Full Name</div>
+          <div class="info-value"><%= user2.name %></div>
+        </div>
+        <div>
+          <div class="info-label">Email</div>
+          <div class="info-value"><%= user2.email %></div>
+        </div>
+        <div>
+          <div class="info-label">Username</div>
+          <div class="info-value"><%= user2.username %></div>
+        </div>
+        <div>
+          <div class="info-label">Native Language</div>
+          <div class="info-value"><%= user2.nativeLanguage || '—' %></div>
+        </div>
+        <div>
+          <div class="info-label">Learning</div>
+          <div class="info-value"><%= user2.targetLanguage || '—' %></div>
+        </div>
+        <div>
+          <div class="info-label">Birthdate</div>
+          <div class="info-value">
+            <%= user2.birthdate ? user2.birthdate.toISOString().split('T')[0] : '—' %>
+          </div>
+        </div>
+      </div>
+
+      <div class="passport-code" id="passportCode"></div>
+    </div>
+  </div>
+
+  <div class="text-center mt-3">
+    <% if (!isOwnProfile) { %>
+      <a href="/chat/<%= [user2.username, user2.username].sort().join('_') %>" class="btn btn-primary">
+        Message <%= user2.name.split(' ')[0] %>
+      </a>
+    <% } else { %>
+      <a href="/profile" class="btn btn-secondary">Edit Your Profile</a>
+    <% } %>
+  </div>
+
+  <div id="videoOverlay" style="
+  position: fixed;
+  top: 60px;
+  bottom: 65px;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+">
+  <video id="passportIntro" autoplay muted playsinline style="
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  ">
+    <source src="/vid/Passport-opening-animation.mp4" type="video/mp4" />
+    Your browser does not support the video tag.
+  </video>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const video = document.getElementById("passportIntro");
+    const overlay = document.getElementById("videoOverlay");
+
+    // Ensure scrolling is disabled while video plays
+    document.body.style.overflow = "hidden";
+
+    video.onended = () => {
+      overlay.style.display = "none";
+      document.body.style.overflow = "";
+    };
+
+    overlay.addEventListener("click", () => {
+      video.pause();
+      overlay.style.display = "none";
+      document.body.style.overflow = "";
+    });
+  });
+</script>
+
+
+  <script>
+    const lat = <%- JSON.stringify(user2?.location?.lat || 0) %>;
+    const lng = <%- JSON.stringify(user2?.location?.lng || 0) %>;
+  </script>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    function flagFromCode(code) {
+      return code.toUpperCase().split('').map(c => String.fromCodePoint(127397 + c.charCodeAt())).join('');
+    }
+
+    if (lat && lng) {
+      const map = L.map('map').setView([lat, lng], 10);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+      L.marker([lat, lng]).addTo(map).bindPopup("<%= user2.name %>'s Location").openPopup();
+    }
+
+    async function detectCountryCode(lat, lng) {
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+      const data = await res.json();
+      const code = data.address?.country_code?.toUpperCase() || "XX";
+      document.getElementById("country-code").textContent = code;
+      document.getElementById("flag-emoji").textContent = flagFromCode(code);
+    }
+
+    if (lat && lng) detectCountryCode(lat, lng);
+
+    function updatePassportCode() {
+      const name = "<%= user2.name.toUpperCase() %>";
+      const username = "<%= user2.username.toUpperCase() %>";
+      const native = "<%= (user2.nativeLanguage || '').toUpperCase() %>";
+      const target = "<%= (user2.targetLanguage || '').toUpperCase() %>";
+      const pad = (txt, len = 15) => (txt + "<<<<<<<<<<<<<<<<<<<<<").slice(0, len);
+      const line1 = `<<${pad(username)}<<<<<<<<<<${pad(name)}<<<<<<<<<<<<<<<<<<<<<`;
+      const line2 = `<<<<<<<<<<<<<${pad(target)}<<<<<<<<<<${pad(native)}<<<<<<<<<<`;
+      document.getElementById("passportCode").innerText = `${line1}\n${line2}`;
+    }
+
+    updatePassportCode();
+  </script>
+
+  <%- include('templates/navbar', { activeTab: '' }) %>
+</body>
+</html>
+
+

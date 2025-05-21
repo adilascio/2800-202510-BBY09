@@ -51,9 +51,9 @@
       <div id="friendList">
         <% list.forEach(friend => { %>
           <div class="friend-card">
-            <div class="d-flex align-items-center">
+            <a href="/profile/<%= friend.username %>" class="d-flex align-items-center text-decoration-none text-dark">
               <img
-                src="<%= friend.profilePic|| '/svgs/person.svg' %>"
+                src="<%= friend.profilePic || '/svgs/person.svg' %>"
                 class="friend-avatar"
                 alt="Avatar of <%= friend.name %>"
               />
@@ -61,7 +61,7 @@
                 <p class="mb-0 fw-semibold"><%= friend.name %></p>
                 <small class="text-secondary">@<%= friend.username %></small>
               </div>
-            </div>
+            </a>
             <button 
               onclick="location.href = '/chat/<%= friend.chatId %>'" 
               class="message-btn" 

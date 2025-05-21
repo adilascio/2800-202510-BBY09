@@ -608,6 +608,26 @@ app.get('/tutor', requireLogin, (req, res) => {
   });
 });
 
+
+app.get('/profile/:username', requireLogin, async (req, res) => {
+  const username = req.params.username;
+  const currentUser = req.session.user.username;
+
+  // Prevent viewing your own profile via public route
+  if (username === currentUser) {
+    return res.redirect('/profile');
+  }
+
+  const user = await usersCollection.findOne({ username });
+  if (!user) return res.status(404).render('404');
+
+  res.render('public-profile', {
+    user2: user, // send as `user2` to avoid collision
+    isOwnProfile: false
+  });
+});
+
+
 // AI Chat endpoint
 app.post('/api/chat', requireLogin, async (req, res) => {
   try {
