@@ -461,8 +461,12 @@ app.post('/profile', requireLogin, upload.single('profilePic'), async (req, res)
   const currentUser = await usersCollection.findOne({ email: req.session.user.email });
 
   const update = {
+    name: req.body.name,  
     username: req.body.username,
-    birthdate: req.body.birthdate ? new Date(req.body.birthdate) : null
+    nativeLanguage: req.body.nativeLanguage,
+    targetLanguage: req.body.targetLanguage,
+    birthdate: req.body.birthdate ? new Date(req.body.birthdate) : null,
+    shareLocation: true
   };
 
   if (req.body.nativeLanguage) {
@@ -473,6 +477,13 @@ app.post('/profile', requireLogin, upload.single('profilePic'), async (req, res)
   if (req.body.targetLanguage) {
     const target = await languagesCollection.findOne({ name: req.body.targetLanguage });
     if (target) update.targetLanguage = target.name;
+  }
+
+  if (req.body.lat && req.body.lng) {
+    update.location = {
+      lat: parseFloat(req.body.lat),
+      lng: parseFloat(req.body.lng)
+    };
   }
 
   // Optional: handle avatar upload if you want
@@ -486,8 +497,10 @@ app.post('/profile', requireLogin, upload.single('profilePic'), async (req, res)
   );
 
   // Update session
-  req.session.user.username = req.body.username;
   req.session.user.name = req.body.name;
+  req.session.user.username = req.body.username;
+  req.session.user.nativeLanguage = req.body.nativeLanguage;
+  req.session.user.targetLanguage = req.body.targetLanguage;
   res.redirect('/profile?updated=true');
 });
 
