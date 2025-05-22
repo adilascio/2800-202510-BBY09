@@ -305,23 +305,11 @@
           <div class="card h-100">
             <div class="card-body d-flex flex-column">
               <h5 class="card-title">Daily Messaging</h5>
-              <% if (!hasChattedToday) { %>
                 <p class="flex-grow-1">
-                  You haven’t sent today’s message yet. Earn 1 point by chatting.
+                  Chat with your friends to earn points!
                 </p>
-                <a href="/messages" class="btn btn-info mt-auto"
-                  >Start Chatting</a
-                >
-              <% } else { %>
-                <p class="flex-grow-1">
-                  Nice work! You’ve earned your messaging point today.
-                </p>
-                <a
-                  href="/messages"
-                  class="btn btn-outline-primary mt-auto"
-                  >View Messages</a
-                >
-              <% } %>
+                <a href="/messages" class="btn btn-info mt-auto">Go to Messages</a>
+
             </div>
           </div>
         </div>

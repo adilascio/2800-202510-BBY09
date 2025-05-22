@@ -310,7 +310,6 @@ app.get('/home', requireLogin, async (req, res) => {
 		showProfilePrompt,
 		requestCount,
 		showAnimation,
-		hasChattedToday,
 		hasPlayedToday
 	});
 });
