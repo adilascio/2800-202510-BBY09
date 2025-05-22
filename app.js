@@ -24,6 +24,7 @@ const languages = require('./public/js/languages');
 const app = express();
 const PORT = process.env.PORT || 8000;
 
+
 let db, usersCollection, locationsCollection, languagesCollection, friendshipsCollection, gameResultsCollection, messagesCollection, media;
 
 
@@ -60,38 +61,37 @@ if (!HF_API_TOKEN) {
 const hf = new InferenceClient(HF_API_TOKEN);
 
 (async () => {
-	try {
-		const dbResult = await connectToDatabase();
-		db = dbResult.db;
-		media = db.collection('media');
-		usersCollection = dbResult.users;
-		messagesCollection = db.collection('messages');
-		locationsCollection = dbResult.locations;
-		languagesCollection = dbResult.languages;
-		friendshipsCollection = dbResult.friendships;
-		gameResultsCollection = dbResult.gameResults;
-		dailyStatsCollection = dbResult.dailyStats;
+  try {
+    const dbResult = await connectToDatabase();
+    db = dbResult.db;
+    media = db.collection('media');
+    usersCollection = dbResult.users;
+    messagesCollection = db.collection('messages');
+    locationsCollection = dbResult.locations;
+    languagesCollection = dbResult.languages;
+    friendshipsCollection = dbResult.friendships;
+    gameResultsCollection = dbResult.gameResults;
+    dailyStatsCollection = dbResult.dailyStats;
 
-		app.listen(PORT, () =>
-			console.log(`Server running on http://localhost:${PORT}`)
-		);
-	} catch (err) {
-		console.error('Failed to connect to MongoDB:', err);
-		process.exit(1);
-	}
+    app.listen(PORT, () =>
+      console.log(`Server running on http://localhost:${PORT}`)
+    );
+  } catch (err) {
+    console.error('Failed to connect to MongoDB:', err);
+    process.exit(1);
+  }
 })();
 
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.urlencoded({
-	extended: true
-}));
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 app.use(session({
-	secret: process.env.SESSION_SECRET || 'temp-secret',
-	resave: false,
-	saveUninitialized: false
+  secret: process.env.SESSION_SECRET || 'temp-secret',
+  resave: false,
+  saveUninitialized: false
 }));
+
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -122,7 +122,7 @@ app.get('/login', (req, res) => {
 
 app.post('/login', async (req, res) => {
 	const schema = Joi.object({
-		email: Joi.string().email().required(),
+		email: Joi.string().required(),
 		password: Joi.string().required()
 	});
 
@@ -136,8 +136,13 @@ app.post('/login', async (req, res) => {
 	}
 
 	const user = await usersCollection.findOne({
-		email: req.body.email
+  		$or: [
+    		{ email: req.body.email },
+    		{ username: req.body.email }
+  		]
 	});
+
+
 	if (!user || !(await bcrypt.compare(req.body.password, user.password))) {
 		return res.status(401).json({
 			errorMessage: 'Incorrect email or password.'
@@ -165,49 +170,56 @@ app.get('/signup', (req, res) => {
   });
 });
 
-app.get("/game", requireLogin, canPlayToday, (req, res) => {
+app.get("/game", requireLogin, async (req, res) => {
+	const user = await usersCollection.findOne({ email: req.session.user.email });
+	const todayPST = DateTime.now().setZone('America/Los_Angeles').toFormat('yyyy-MM-dd');
+	const language = req.query.lang || 'en';
+
+	const existingPuzzle = await gameResultsCollection.findOne({
+		userId: user._id,
+		date: todayPST,
+		language
+	});
+
+	let letterBank = existingPuzzle?.letters || null;
+	const result = existingPuzzle?.wordsFound || [];
+
 	res.render("game", {
 		user: req.session.user,
 		activeTab: "puzzles",
-		message: req.playMessage || null,
-		result: req.gameResult || []
+		message: null,
+		result,
+		letters: letterBank,
+		selectedLang: language
 	});
 });
 
 app.post('/played-today', requireLogin, async (req, res) => {
-	const todayPST = DateTime.now()
-		.setZone('America/Los_Angeles')
-		.toFormat('yyyy-MM-dd');
+	const todayPST = DateTime.now().setZone('America/Los_Angeles').toFormat('yyyy-MM-dd');
+	const currentUser = await usersCollection.findOne({ email: req.session.user.email });
 
-	const currentUser = await usersCollection.findOne({
-		email: req.session.user.email
-	});
-	const {
-		language,
-		result
-	} = req.body;
+	const { language, result, letters } = req.body;
 
-	if (!language || !result) {
-		return res.status(400).send("Missing language or result data");
+	if (!language || !result || !letters) {
+		return res.status(400).send("Missing language, result, or letters.");
 	}
 
-	await gameResultsCollection.updateOne({
-		userId: currentUser._id,
-		date: todayPST,
-		language
-	}, {
-		$set: {
-			wordsFound: result,
-			score: result.length,
-			updatedAt: new Date()
-		}
-	}, {
-		upsert: true
-	});
-
+	await gameResultsCollection.updateOne(
+		{ userId: currentUser._id, date: todayPST, language },
+		{
+			$set: {
+				wordsFound: result,
+				letters,
+				score: result.length,
+				updatedAt: new Date()
+			}
+		},
+		{ upsert: true }
+	);
 
 	res.sendStatus(200);
 });
+
 
 function canPlayToday(req, res, next) {
 	usersCollection.findOne({
@@ -313,7 +325,7 @@ app.get('/home', requireLogin, async (req, res) => {
 		hasPlayedToday
 	});
 });
-
+  
 // Friends Page
 app.get('/friends', requireLogin, async (req, res) => {
 	const currentUser = await usersCollection.findOne({
@@ -534,7 +546,11 @@ app.post('/accept-request', requireLogin, async (req, res) => {
 
   // Optional: store chatId
   const chatId = [currentUser.username, fromUsername].sort().join('_');
-  await usersCollection.updateOne({ username: currentUser.username }, { $addToSet: { chats: chatId } });
+  await db.collection('chats').updateOne(
+	{ chatId },
+	{ $setOnInsert: { participants: [currentUser, fromUsername], createdAt: new Date() } },
+	{ upsert: true }
+  );
   await usersCollection.updateOne({ username: fromUsername }, { $addToSet: { chats: chatId } });
 
   res.redirect('/friends');
@@ -613,13 +629,21 @@ app.post('/profile', requireLogin, upload.single('profilePic'), async (req, res)
   const currentUser = await usersCollection.findOne({ email: req.session.user.email });
 
   // Step 1: Build the user document update
-  const userUpdate = {
+  const update = {
     firstName: req.body.firstName,
     lastName: req.body.lastName,
     username: req.body.username,
-    birthdate: req.body.birthdate ? new Date(req.body.birthdate) : null
+    birthdate: req.body.birthdate ? new Date(req.body.birthdate) : null,
+	shareLocation: true
   };
 
+  if (req.body.lat && req.body.lng) {
+    update.location = {
+      lat: parseFloat(req.body.lat),
+      lng: parseFloat(req.body.lng)
+    };
+  }
+  
   // Step 2: Add profile picture if uploaded
 	if (req.file) {
 	// Remove old profilePic from media (optional)
@@ -638,7 +662,7 @@ app.post('/profile', requireLogin, upload.single('profilePic'), async (req, res)
   // Step 3: Update users collection
   await usersCollection.updateOne(
     { _id: currentUser._id },
-    { $set: userUpdate }
+    { $set: update }
   );
 
   // Step 4: Update languages collection
@@ -674,8 +698,35 @@ app.post('/profile', requireLogin, upload.single('profilePic'), async (req, res)
   // Step 6: Update session data
   req.session.user.name = `${req.body.firstName} ${req.body.lastName}`;
   req.session.user.username = req.body.username;
+  req.session.locationConfirmed = true; 
 
   res.redirect('/profile?updated=true');
+});
+
+app.post('/submit-word', requireLogin, async (req, res) => {
+  const { word, language } = req.body;
+  const user = await usersCollection.findOne({ email: req.session.user.email });
+
+  if (!user || !word || !language) {
+    return res.status(400).json({ success: false, message: 'Missing data' });
+  }
+
+  const todayPST = DateTime.now().setZone('America/Los_Angeles').toFormat('yyyy-MM-dd');
+
+  try {
+    const result = await gameResultsCollection.updateOne(
+      { userId: user._id, date: todayPST, language },
+      {
+        $addToSet: { wordsFound: word },
+        $set: { updatedAt: new Date() }
+      },
+      { upsert: true }
+    );
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.error('❌ Failed to update word:', err);
+    res.status(500).json({ success: false, message: 'Internal error' });
+  }
 });
 
 
@@ -740,6 +791,7 @@ app.get('/settings', requireLogin, async (req, res) => {
 app.post('/settings', requireLogin, async (req, res) => {
 	const shareLocation = req.body.shareLocation === 'on';
 	const passportAnimation = req.body.passportAnimation === 'on'; // ← new toggle value
+	
 
 	const update = {
 		shareLocation,
@@ -755,11 +807,13 @@ app.post('/settings', requireLogin, async (req, res) => {
 		update.location = null;
 	}
 
-	await usersCollection.updateOne({
-		email: req.session.user.email
-	}, {
-		$set: update
-	});
+	await locationsCollection.updateOne(
+		{ userId: currentUser._id },
+		{ $set: { lat, lng, shareLocation } },
+		{ upsert: true }
+	);
+
+	req.session.locationConfirmed = true;
 
 	res.redirect('/profile?updated=true');
 });
@@ -792,25 +846,27 @@ app.get('/profile/:username', requireLogin, async (req, res) => {
 		return res.redirect('/profile');
 	}
 
-	const user = await usersCollection.findOne({
-		username
-	});
+	const user = await usersCollection.findOne({ username });
 	if (!user) return res.status(404).render('404');
 
-	const lang = await languagesCollection.findOne({
-		userId: user._id
-	});
+	const lang = await languagesCollection.findOne({ userId: user._id });
+	const location = await locationsCollection.findOne({ userId: user._id });
 
 	res.render('public-profile', {
 		user2: {
 			...user,
-			fullName: formatFullName(user)
+			fullName: formatFullName(user),
+			name: formatFullName(user),
+			nativeLanguage: lang?.nativeLanguage || '',
+			targetLanguage: lang?.targetLanguage || '',
+			location: location || {}
 		},
-		languageInfo: lang || {},
 		isOwnProfile: false,
-		from
+		from,
+		currentUser: req.session.user
 	});
 });
+
 
 
 // AI Chat endpoint
@@ -929,7 +985,7 @@ app.post('/send-message', requireLogin, async (req, res) => {
 			timestamp: new Date()
 		});
 
-		res.redirect(`/chat/${chatId}`);
+		res.sendStatus(200); 
 	} catch (err) {
 		console.error('Error saving message:', err);
 		res.status(500).json({
@@ -957,6 +1013,32 @@ app.post('/api/avatar/describe', async (req, res) => {
 		});
 	}
 });
+
+app.post('/delete-account', requireLogin, async (req, res) => {
+	const currentUser = await usersCollection.findOne({ email: req.session.user.email });
+	if (!currentUser) return res.redirect('/login');
+  
+	const userId = currentUser._id;
+  
+	// Delete user-related data
+	await usersCollection.deleteOne({ _id: userId });
+	await friendshipsCollection.deleteMany({ $or: [{ userId }, { friendId: userId }] });
+	await languagesCollection.deleteOne({ userId });
+	await locationsCollection.deleteOne({ userId });
+	await gameResultsCollection.deleteMany({ userId });
+	await media.deleteMany({ userId });
+	await messagesCollection.deleteMany({ chatId: { $regex: currentUser.username } }); // optional cleanup
+  
+	req.session.destroy();
+	res.redirect('/goodbye');
+  });
+  
+
+  app.get('/goodbye', (req, res) => {
+	res.render('goodbye', {
+	  pageTitle: 'Goodbye'
+	});
+  });  
 
 app.post('/api/location/confirm', requireLogin, (req, res) => {
   req.session.locationConfirmed = true;

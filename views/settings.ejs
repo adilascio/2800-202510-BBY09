@@ -4,32 +4,144 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Settings</title>
+
+  <!-- Styles -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"/>
+
+  <style>
+    body {
+      background: linear-gradient(to bottom, #ffffff, #ffa500);
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+    }
+
+    .card-transparent {
+      background-color: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-top: 4rem;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-check-input {
+      border-radius: 10px;
+    }
+
+    .form-check-label {
+      font-weight: 500;
+    }
+
+    .btn {
+      border-radius: 12px;
+    }
+
+    .danger-zone {
+      border-top: 2px solid #dc3545;
+      margin-top: 2.5rem;
+      padding-top: 2rem;
+    }
+
+    .danger-zone h5 {
+      color: #dc3545;
+      font-weight: bold;
+    }
+
+    .btn-danger {
+      background-color: #dc3545;
+      border-color: #dc3545;
+    }
+
+    .btn-danger:hover {
+      background-color: #bb2d3b;
+    }
+
+    .swal2-popup {
+      border-radius: 14px !important;
+    }
+  </style>
 </head>
 
-<body class="container py-5">
-  <h2 class="mb-4">Settings</h2>
+<body>
+  <%- include('templates/header', { pageTitle: 'Settings' }) %>
 
-  <form action="/settings" method="POST">
-    <input type="hidden" name="lat" id="latInput">
-    <input type="hidden" name="lng" id="lngInput">
-    <div class="form-check form-switch mb-4">
-      <input class="form-check-input" type="checkbox" name="shareLocation" id="shareLocationToggle"
-             <%= user.shareLocation ? 'checked' : '' %>>
-      <label class="form-check-label" for="shareLocationToggle">Enable Location Sharing</label>
+  <main class="container d-flex justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6 card-transparent">
+      <h3 class="mb-4 text-center">Settings</h3>
+
+      <form action="/settings" method="POST">
+        <input type="hidden" name="lat" id="latInput">
+        <input type="hidden" name="lng" id="lngInput">
+
+        <!-- Toggle: Share Location -->
+        <div class="form-check form-switch mb-4">
+          <input class="form-check-input" type="checkbox" name="shareLocation" id="shareLocationToggle"
+            <%= user.shareLocation ? 'checked' : '' %>>
+          <label class="form-check-label" for="shareLocationToggle">
+            Enable Location Sharing
+          </label>
+        </div>
+
+        <!-- Toggle: Passport Animation -->
+        <div class="form-check form-switch mb-4">
+          <input class="form-check-input" type="checkbox" name="passportAnimation" id="passportAnimationToggle"
+            <%= user.passportAnimation ? 'checked' : '' %>>
+          <label class="form-check-label" for="passportAnimationToggle">
+            Enable Passport Opening Animation
+          </label>
+        </div>
+
+        <!-- Save button -->
+        <div class="d-grid">
+          <button type="submit" class="btn btn-primary">Save Settings</button>
+        </div>
+      </form>
+
+      <!-- Danger Zone -->
+      <div class="danger-zone mt-5">
+        <h5 class="mb-3">Danger Zone</h5>
+        <button id="deleteAccountBtn" class="btn btn-danger w-100">
+          <i class="bi bi-trash me-2"></i>Delete My Account
+        </button>
+      </div>
+
+      <div class="text-center mt-4">
+        <a href="/profile" class="btn btn-outline-secondary">Back to Profile</a>
+      </div>
     </div>
-
-    <div class="form-check form-switch mb-4">
-      <input class="form-check-input" type="checkbox" name="passportAnimation" id="passportAnimationToggle"
-             <%= user.passportAnimation ? 'checked' : '' %>>
-      <label class="form-check-label" for="passportAnimationToggle">Enable Passport Opening Animation</label>
-    </div>
-    
-    <button type="submit" class="btn btn-primary">Save Settings</button>
-  </form>
-
-  <a href="/profile" class="btn btn-link mt-3">Back to Profile</a>
+  </main>
 
   <%- include('templates/navbar', { activeTab: '' }) %>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    document.getElementById('deleteAccountBtn').addEventListener('click', () => {
+      Swal.fire({
+        title: 'Are you absolutely sure?',
+        text: 'This action will permanently delete your account. This cannot be undone!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Cancel',
+        customClass: {
+          popup: 'swal2-glow-popup'
+        }
+      }).then(result => {
+        if (result.isConfirmed) {
+          // Create and submit a form
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = '/delete-account';
+          document.body.appendChild(form);
+          form.submit();
+        }
+      });
+    });
+  </script>
 </body>
 </html>

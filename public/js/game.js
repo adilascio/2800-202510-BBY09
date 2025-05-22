@@ -166,17 +166,18 @@ document.getElementById("submit-word").addEventListener("click", async () => {
   usedWords.add(input);
 
   // Save result to server (persist the day's game progress)
-// Save result to server (persist the day's game progress)
-fetch('/played-today', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      result: Array.from(usedWords),
-      language: document.getElementById("language-select").value
-    })
-  });
+// Save each word individually to server
+fetch('/submit-word', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    word: input,
+    language: document.getElementById("language-select").value
+  })
+});
+
 
   document.getElementById("word-list").innerHTML += `<li class="text-success">${input}</li>`;
   feedback.innerText = "✅ Good job!";

@@ -1,12 +1,12 @@
 require('dotenv').config();
 const { MongoClient } = require('mongodb');
 
-const client = new MongoClient(process.env.MONGODB_URI);
+const client = new MongoClient(process.env.MONGO_URI);
 
 async function connectToDatabase() {
   try {
     await client.connect();
-    console.log("🌐 URI:", process.env.MONGODB_URI);
+    console.log("🌐 URI:", process.env.MONGO_URI);
     console.log("🗄️  DB Name:", process.env.DB_NAME);
     console.log("✅ MongoDB connected");
 

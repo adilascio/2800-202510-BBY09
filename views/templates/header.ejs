@@ -1,9 +1,17 @@
 <header class="position-fixed top-0 start-0 end-0 d-flex align-items-center justify-content-between px-3 py-2 bg-white shadow-sm" style="z-index:1000;">
   <!-- Left icon -->
   <div class="d-flex align-items-center">
-    <a href="/profile" title="profile" class="position-relative me-2">
-      <img src="/svgs/passport.svg" alt="Add Friend" width="30" height="30">
+    <% if (pageTitle === 'Profile') { %>
+      <!-- Show settings icon only on Profile page -->
+      <a href="/settings" title="Settings" class="position-relative me-2">
+        <img src="/svgs/settings.svg" alt="Settings" width="30" height="30">
       </a>
+    <% } else { %>
+      <!-- Default passport icon -->
+      <a href="/profile" title="Profile" class="position-relative me-2">
+        <img src="/svgs/passport.svg" alt="Profile" width="30" height="30">
+      </a>
+    <% } %>
   </div>
 
   <!-- Centered title -->
@@ -13,7 +21,6 @@
   <div class="d-flex align-items-center">
     <a href="/friends" title="Add Friend" class="position-relative me-3">
       <img src="/svgs/add-friend.svg" alt="Add Friend" width="30" height="30">
-
     </a>
   </div>
 </header>
