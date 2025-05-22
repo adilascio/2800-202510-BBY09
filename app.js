@@ -22,7 +22,8 @@ const {
 const languages = require('./public/js/languages');
 
 const app = express();
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT;
+
 
 let db, usersCollection, locationsCollection, languagesCollection, friendshipsCollection, gameResultsCollection, messagesCollection, media;
 
