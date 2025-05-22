@@ -791,6 +791,7 @@ app.get('/settings', requireLogin, async (req, res) => {
 app.post('/settings', requireLogin, async (req, res) => {
 	const shareLocation = req.body.shareLocation === 'on';
 	const passportAnimation = req.body.passportAnimation === 'on'; // ← new toggle value
+	
 
 	const update = {
 		shareLocation,
@@ -812,6 +813,7 @@ app.post('/settings', requireLogin, async (req, res) => {
 		{ upsert: true }
 	);
 
+	req.session.locationConfirmed = true;
 
 	res.redirect('/profile?updated=true');
 });
