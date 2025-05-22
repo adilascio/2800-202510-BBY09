@@ -283,11 +283,12 @@
       class="passport-body"
     >
       <div class="photo-section text-center mb-3">
-        <img
-          id="profilePreview"
-          src="<%= user.profilePic || '/svgs/person.svg' %>"
-          alt="Profile Picture"
-        />
+      <img
+            id="profilePreview"
+            src="<%= profilePicUrl || '/svgs/person.svg' %>"
+            alt="Profile Picture"
+          />
+
         <label for="avatarInput" class="photo-upload-btn"
           >Choose File</label
         >

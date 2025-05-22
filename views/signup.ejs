@@ -43,26 +43,6 @@
       <input type="date" class="form-control" id="birthdate" name="birthdate" required>
     </div>
 
-    <!-- ✅ New: Native Language -->
-    <div class="mb-3">
-      <label class="form-label">Native Language</label>
-      <select name="nativeLanguage" class="form-control" required>
-        <% languages.forEach(lang => { %>
-          <option value="<%= lang %>"><%= lang %></option>
-        <% }) %>
-      </select>
-    </div>
-
-    <!-- ✅ New: Target Language -->
-    <div class="mb-3">
-      <label class="form-label">Target Language</label>
-      <select name="targetLanguage" class="form-control" required>
-        <% languages.forEach(lang => { %>
-          <option value="<%= lang %>"><%= lang %></option>
-        <% }) %>
-      </select>
-    </div>
-
     <button type="submit" class="btn btn-primary">Submit</button>
   </form>
 

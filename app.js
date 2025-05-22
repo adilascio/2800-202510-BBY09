@@ -24,7 +24,7 @@ const languages = require('./public/js/languages');
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-let db, usersCollection, locationsCollection, languagesCollection, friendshipsCollection, gameResultsCollection, messagesCollection;
+let db, usersCollection, locationsCollection, languagesCollection, friendshipsCollection, gameResultsCollection, messagesCollection, media;
 
 
 if (!fs.existsSync(uploadDir)) {
@@ -63,6 +63,7 @@ const hf = new InferenceClient(HF_API_TOKEN);
 	try {
 		const dbResult = await connectToDatabase();
 		db = dbResult.db;
+		media = db.collection('media');
 		usersCollection = dbResult.users;
 		messagesCollection = db.collection('messages');
 		locationsCollection = dbResult.locations;
@@ -235,8 +236,6 @@ app.post('/signup', async (req, res) => {
 		email: Joi.string().email().required(),
 		password: Joi.string().min(6).max(30).required().trim(),
 		birthdate: Joi.date().iso().less('now').required(),
-		nativeLanguage: Joi.string().required(),
-		targetLanguage: Joi.string().required()
 	});
 
 	const { error } = schema.validate(req.body);
@@ -269,13 +268,6 @@ app.post('/signup', async (req, res) => {
 
 	// Fetch the inserted user
 	const user = await usersCollection.findOne({ _id: userInsertResult.insertedId });
-
-	// Insert language info
-	await languagesCollection.insertOne({
-		userId: user._id,
-		nativeLanguage: req.body.nativeLanguage,
-		targetLanguage: req.body.targetLanguage
-	});
 
 	// Set session
 	req.session.user = {
@@ -593,8 +585,6 @@ app.post('/cancel-request', requireLogin, async (req, res) => {
 });
 
 app.get('/profile', requireLogin, async (req, res) => {
-  const { media } = await connectToDatabase();
-
   const user = await usersCollection.findOne({ email: req.session.user.email });
   if (!user) return res.redirect('/login');
 
@@ -633,9 +623,19 @@ app.post('/profile', requireLogin, upload.single('profilePic'), async (req, res)
   };
 
   // Step 2: Add profile picture if uploaded
-  if (req.file) {
-    userUpdate.profilePic = `/uploads/${req.file.filename}`;
-  }
+	if (req.file) {
+	// Remove old profilePic from media (optional)
+	await media.deleteMany({ userId: currentUser._id, type: 'profilePic' });
+
+	// Insert new profilePic
+	await media.insertOne({
+		userId: currentUser._id,
+		type: 'profilePic',
+		url: `/uploads/${req.file.filename}`,
+		uploadedAt: new Date()
+	});
+	}
+
 
   // Step 3: Update users collection
   await usersCollection.updateOne(
