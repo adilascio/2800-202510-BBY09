@@ -338,7 +338,7 @@ app.get('/friends', requireLogin, async (req, res) => {
 		status: 'received'
 	}).toArray();
 
-	const senderIds = received.map(r => r.userId);
+	const senderIds = received.map(r => r.friendId);
 	const receivedRequests = await usersCollection.find({
 		_id: {
 			$in: senderIds
