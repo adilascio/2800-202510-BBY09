@@ -250,7 +250,7 @@
 </head>
 
 <body>
-  <%- include('templates/header', { pageTitle: '<%= user2.name %>'s Profile' }) %>
+  <%- include('templates/header', { pageTitle: user2.name + "'s Profile" }) %>
   <div class="passport-container">
     <div class="passport-map">
       <div id="map"></div>
@@ -372,9 +372,11 @@
 </script>
 
 <script>
-  const lat = <%- JSON.stringify(user2.location?.lat || 0) %>;
-  const lng = <%- JSON.stringify(user2.location?.lng || 0) %>;
+  const lat = <%= JSON.stringify(user2.location && user2.location.lat || 0) %>;
+  const lng = <%= JSON.stringify(user2.location && user2.location.lng || 0) %>;
 </script>
+
+
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
