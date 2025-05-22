@@ -703,6 +703,32 @@ app.post('/profile', requireLogin, upload.single('profilePic'), async (req, res)
   res.redirect('/profile?updated=true');
 });
 
+app.post('/submit-word', requireLogin, async (req, res) => {
+  const { word, language } = req.body;
+  const user = await usersCollection.findOne({ email: req.session.user.email });
+
+  if (!user || !word || !language) {
+    return res.status(400).json({ success: false, message: 'Missing data' });
+  }
+
+  const todayPST = DateTime.now().setZone('America/Los_Angeles').toFormat('yyyy-MM-dd');
+
+  try {
+    const result = await gameResultsCollection.updateOne(
+      { userId: user._id, date: todayPST, language },
+      {
+        $addToSet: { wordsFound: word },
+        $set: { updatedAt: new Date() }
+      },
+      { upsert: true }
+    );
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.error('❌ Failed to update word:', err);
+    res.status(500).json({ success: false, message: 'Internal error' });
+  }
+});
+
 
 app.get('/messages', requireLogin, async (req, res) => {
 	console.log('Session user:', req.session.user);
