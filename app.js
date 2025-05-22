@@ -929,7 +929,7 @@ app.post('/send-message', requireLogin, async (req, res) => {
 			timestamp: new Date()
 		});
 
-		res.redirect(`/chat/${chatId}`);
+		res.sendStatus(200); 
 	} catch (err) {
 		console.error('Error saving message:', err);
 		res.status(500).json({
