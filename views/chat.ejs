@@ -126,32 +126,56 @@
   </nav>
 
   <!-- Messages -->
-  <div class="chat-messages" id="chatBox">
-    <% messages.forEach(msg => { %>
-      <div class="chat-message <%= msg.user === currentUser ? 'user' : 'friend' %>">
-        <div class="msg"><%= msg.text %></div>
-        <div class="meta"><%= msg.user %></div>
-      </div>
-    <% }) %>
-  </div>
+  <div class="chat-messages" id="chatBox"></div>
 
-  <!-- Input bar fixed to bottom -->
-  <form action="/send-message" method="POST" class="chat-input">
-    <input type="hidden" name="chatId" value="<%= chatId %>" />
-    <input
-      type="text"
-      name="message"
-      placeholder="Type a message…"
-      autocomplete="off"
-      required
-    />
+  <!-- Input bar -->
+  <form id="chatForm" class="chat-input">
+    <input type="text" id="chatInput" placeholder="Type a message…" autocomplete="off" required />
     <button type="submit"><i class="bi bi-send-fill"></i></button>
   </form>
 
+  <!-- Scripts -->
   <script>
+    const chatId = "<%= chatId %>";
+    const currentUser = "<%= currentUser %>";
     const chatBox = document.getElementById('chatBox');
-    chatBox.scrollTop = chatBox.scrollHeight;
+    const chatForm = document.getElementById('chatForm');
+    const chatInput = document.getElementById('chatInput');
+
+    // Render messages
+    async function pollMessages() {
+      const res = await fetch(`/chat/${chatId}/messages`);
+      const messages = await res.json();
+
+      chatBox.innerHTML = messages.map(msg => `
+        <div class="chat-message ${msg.user === currentUser ? 'user' : 'friend'}">
+          <div class="msg">${msg.text}</div>
+          <div class="meta">${msg.user}</div>
+        </div>
+      `).join('');
+
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Send message via AJAX
+    chatForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = chatInput.value.trim();
+      if (!text) return;
+
+      await fetch('/send-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, chatId })
+      });
+
+      chatInput.value = '';
+    });
+
+    setInterval(pollMessages, 1500);
+    pollMessages();
   </script>
-  <script src="/js/AJAXMessagepulling.js"></script>
+
 </body>
+
 </html>
