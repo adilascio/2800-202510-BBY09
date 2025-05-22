@@ -613,13 +613,21 @@ app.post('/profile', requireLogin, upload.single('profilePic'), async (req, res)
   const currentUser = await usersCollection.findOne({ email: req.session.user.email });
 
   // Step 1: Build the user document update
-  const userUpdate = {
+  const update = {
     firstName: req.body.firstName,
     lastName: req.body.lastName,
     username: req.body.username,
-    birthdate: req.body.birthdate ? new Date(req.body.birthdate) : null
+    birthdate: req.body.birthdate ? new Date(req.body.birthdate) : null,
+	shareLocation: true
   };
 
+  if (req.body.lat && req.body.lng) {
+    update.location = {
+      lat: parseFloat(req.body.lat),
+      lng: parseFloat(req.body.lng)
+    };
+  }
+  
   // Step 2: Add profile picture if uploaded
 	if (req.file) {
 	// Remove old profilePic from media (optional)
@@ -638,7 +646,7 @@ app.post('/profile', requireLogin, upload.single('profilePic'), async (req, res)
   // Step 3: Update users collection
   await usersCollection.updateOne(
     { _id: currentUser._id },
-    { $set: userUpdate }
+    { $set: update }
   );
 
   // Step 4: Update languages collection
@@ -674,6 +682,7 @@ app.post('/profile', requireLogin, upload.single('profilePic'), async (req, res)
   // Step 6: Update session data
   req.session.user.name = `${req.body.firstName} ${req.body.lastName}`;
   req.session.user.username = req.body.username;
+  req.session.locationConfirmed = true; 
 
   res.redirect('/profile?updated=true');
 });
