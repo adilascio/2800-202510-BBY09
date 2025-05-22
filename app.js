@@ -298,7 +298,6 @@ app.get('/home', requireLogin, async (req, res) => {
 
 
 	const today = DateTime.now().setZone('Canada/Vancouver').toFormat('yyyy-MM-dd');
-	const hasChattedToday = user.lastChatDate === today;
 	const hasPlayedToday = user.lastPlayed === today;
 
 	const showProfilePrompt = req.session.showProfilePrompt;
