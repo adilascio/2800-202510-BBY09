@@ -53,7 +53,11 @@ document.addEventListener("DOMContentLoaded", () => {
         cancelButtonText: 'No'
       }).then(async result => {
         if (result.isConfirmed) {
+          // Store session flag to prevent future prompts
+          await fetch("/api/location/confirm", { method: "POST" });
+
           const { latitude, longitude } = await getCoords();
+
   
           // Fill hidden inputs
           if (latInput) latInput.value = latitude;

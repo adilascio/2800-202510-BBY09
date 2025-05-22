@@ -593,24 +593,33 @@ app.post('/cancel-request', requireLogin, async (req, res) => {
 });
 
 app.get('/profile', requireLogin, async (req, res) => {
-	const {
-		media
-	} = await connectToDatabase();
-	const user = await usersCollection.findOne({
-		email: req.session.user.email
-	});
+  const { media } = await connectToDatabase();
 
-	const profilePic = await media.findOne({
-		userId: user._id,
-		type: "profilePic"
-	});
+  const user = await usersCollection.findOne({ email: req.session.user.email });
+  if (!user) return res.redirect('/login');
 
-	res.render('profile', {
-		user,
-		languages,
-		profilePicUrl: profilePic?.url || '/uploads/default.jpg'
-	});
+  // Profile picture
+  const profilePic = await media.findOne({
+    userId: user._id,
+    type: "profilePic"
+  });
+
+  // Language info
+  const langData = await languagesCollection.findOne({ userId: user._id });
+  user.nativeLanguage = langData?.nativeLanguage || '';
+  user.targetLanguage = langData?.targetLanguage || '';
+
+  // Location prompt flag
+  const showLocationPrompt = !req.session.locationConfirmed;
+
+  res.render('profile', {
+    user,
+    languages,
+    profilePicUrl: profilePic?.url || '/uploads/default.jpg',
+    showLocationPrompt
+  });
 });
+
 
 app.post('/profile', requireLogin, upload.single('profilePic'), async (req, res) => {
   const currentUser = await usersCollection.findOne({ email: req.session.user.email });
@@ -949,6 +958,11 @@ app.post('/api/avatar/describe', async (req, res) => {
 			error: err.message
 		});
 	}
+});
+
+app.post('/api/location/confirm', requireLogin, (req, res) => {
+  req.session.locationConfirmed = true;
+  res.sendStatus(200);
 });
 
 // 404 handler

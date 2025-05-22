@@ -261,6 +261,10 @@
     <div class="passport-map">
       <div id="map"></div>
     </div>
+    <% if (showLocationPrompt) { %>
+    <script src="/js/profile-location.js"></script>
+    <% } %>
+
     <div class="passport-header">
       <div class="passport-title-line">
         <span class="passport-title">PASSPORT</span>
@@ -305,17 +309,32 @@
 
       <div class="info-section">
         <!-- Full Name -->
+        <!-- First Name -->
         <div>
-          <div class="info-label">Full Name</div>
+          <div class="info-label">First Name</div>
           <input
             type="text"
             class="form-control"
-            name="name"
-            id="name"
-            value="<%= user.name || '' %>"
+            name="firstName"
+            id="firstName"
+            value="<%= user.firstName || '' %>"
             required
           />
         </div>
+
+        <!-- Last Name -->
+        <div>
+          <div class="info-label">Last Name</div>
+          <input
+            type="text"
+            class="form-control"
+            name="lastName"
+            id="lastName"
+            value="<%= user.lastName || '' %>"
+            required
+          />
+        </div>
+
 
         <!-- Email -->
         <div>
@@ -526,9 +545,9 @@
     }
 
     function updatePassportCode() {
-      const fullName =
-        document.getElementById("name")?.value.toUpperCase() ||
-        "";
+      const firstName = document.getElementById("firstName")?.value.toUpperCase() || "";
+      const lastName = document.getElementById("lastName")?.value.toUpperCase() || "";
+      const fullName = `${firstName} ${lastName}`.trim();
       const user =
         document.getElementById("username")?.value.toUpperCase() ||
         "";
