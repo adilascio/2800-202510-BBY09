@@ -22,7 +22,7 @@ const {
 const languages = require('./public/js/languages');
 
 const app = express();
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 8000;
 
 
 let db, usersCollection, locationsCollection, languagesCollection, friendshipsCollection, gameResultsCollection, messagesCollection, media;
@@ -325,7 +325,7 @@ app.get('/home', requireLogin, async (req, res) => {
 		hasPlayedToday
 	});
 });
-
+  
 // Friends Page
 app.get('/friends', requireLogin, async (req, res) => {
 	const currentUser = await usersCollection.findOne({

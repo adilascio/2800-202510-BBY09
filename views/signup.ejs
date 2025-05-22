@@ -2,57 +2,122 @@
 <html lang="en">
 
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   <title>Signup to LingoLink</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet"
-    integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
-  <link rel="stylesheet" href="/css/signup.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/signup.css" />
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    body {
+      background: linear-gradient(to bottom, #ffffff, #ffa500);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .signup-card {
+      max-width: 500px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-theme {
+      background-color: #ff8c00;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      font-weight: bold;
+      text-transform: uppercase;
+      transition: all 0.3s ease;
+    }
+
+    .btn-theme:hover {
+      background-color: #ffa500;
+      transform: scale(1.05);
+      box-shadow: 0 0 10px rgba(255, 140, 0, 0.3);
+    }
+
+    .swal2-popup {
+      border-radius: 14px !important;
+    }
+
+    .swal2-confirm {
+      background-color: #ffa500 !important;
+      color: white !important;
+      border-radius: 12px !important;
+      font-weight: bold;
+    }
+
+    .swal2-cancel {
+      background-color: #eee !important;
+      color: #333 !important;
+      border-radius: 12px !important;
+      font-weight: bold;
+    }
+  </style>
 </head>
 
-<body class="container mt-5">
-  <form id="signup" method="POST" action="/signup" class="mb-3">
-    <h1 class="mb-4">Sign-Up</h1>
+<body>
+  <div class="signup-card">
+    <form id="signup" method="POST" action="/signup">
+      <h2 class="text-center mb-4" style="color: #0d3551; font-weight: bold;">Create Your Account</h2>
 
-    <div class="mb-3">
-      <label class="form-label">First Name</label>
-      <input type="text" name="firstName" placeholder="John" class="form-control" required>
-    </div>
+      <div class="mb-3">
+        <label class="form-label">First Name</label>
+        <input type="text" name="firstName" placeholder="John" class="form-control" required>
+      </div>
 
-    <div class="mb-3">
-      <label class="form-label">Last Name</label>
-      <input type="text" name="lastName" placeholder="Doe" class="form-control" required>
-    </div>
+      <div class="mb-3">
+        <label class="form-label">Last Name</label>
+        <input type="text" name="lastName" placeholder="Doe" class="form-control" required>
+      </div>
 
-    <div class="mb-3">
-      <label class="form-label">Username</label>
-      <input type="text" name="username" placeholder="JDoe212" class="form-control" required>
-    </div>
+      <div class="mb-3">
+        <label class="form-label">Username</label>
+        <input type="text" name="username" placeholder="JDoe212" class="form-control" required>
+      </div>
 
-    <div class="mb-3">
-      <label class="form-label">E-Mail</label>
-      <input type="email" name="email" placeholder="john@example.com" class="form-control" required>
-    </div>
+      <div class="mb-3">
+        <label class="form-label">E-Mail</label>
+        <input type="email" name="email" placeholder="john@example.com" class="form-control" required>
+      </div>
 
-    <div class="mb-3">
-      <label class="form-label">Password</label>
-      <input type="password" name="password" placeholder="6-30 Characters" class="form-control" required>
-    </div>
+      <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input type="password" name="password" placeholder="6-30 Characters" class="form-control" minlength="6" maxlength="30" required>
+      </div>
 
-    <div class="mb-3">
-      <label for="birthdate" class="form-label">Birthdate</label>
-      <input type="date" class="form-control" id="birthdate" name="birthdate" required>
-    </div>
+      <div class="mb-3">
+        <label for="birthdate" class="form-label">Birthdate</label>
+        <input type="date" class="form-control" id="birthdate" name="birthdate" required>
+      </div>
 
-    <button type="submit" class="btn btn-primary">Submit</button>
-  </form>
+      <button type="submit" class="btn btn-theme w-100 mt-3">Sign Up</button>
+    </form>
+  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <% if (errorMessage) { %>
     <script>
       Swal.fire({
         icon: 'error',
         title: 'Oops...',
-        text: '<%= errorMessage %>'
+        text: '<%= errorMessage %>',
+        confirmButtonText: 'OK',
+        customClass: {
+          popup: 'swal2-popup',
+          confirmButton: 'swal2-confirm'
+        },
+        buttonsStyling: false
       });
     </script>
   <% } %>

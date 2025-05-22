@@ -282,8 +282,7 @@
               <form action="/profile" method="POST" enctype="multipart/form-data" id="profileForm"
                 class="passport-body">
                 <div class="photo-section text-center mb-3">
-                  <img id="profilePreview" src="<%= profilePicUrl || '/svgs/person.svg' %>" alt="Profile Picture" />
-
+                  <img id="profilePreview" src="<%= profilePicUrl  || '/svgs/person.svg' %>" alt="Profile Picture" />
                   <label for="avatarInput" class="photo-upload-btn">Choose File</label>
                   <input type="file" name="profilePic" accept="image/png, image/jpeg" id="avatarInput"
                     style="display: none;" />
