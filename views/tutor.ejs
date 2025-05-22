@@ -33,7 +33,7 @@
       background: linear-gradient(
         to bottom right,
         #f0fdff,
-        #e6f7ff
+        #de8d14
       ) !important;
     }
 
@@ -66,9 +66,12 @@
     /* ── New: smaller tutor-selector card ─────────────────────────── */
     .tutor-selector-card {
       max-width: 180px !important;
+      max-height: 180px !important;
+    
     }
     .tutor-selector-card .card-body {
       padding: 0.25rem !important;
+      margin-bottom: 20%;
     }
     .tutor-selector-card img {
       width: 100%;
@@ -95,8 +98,8 @@
       <div class="card card-transparent">
         <div class="card-body">
 
-          <!-- Tutor Selector Card (now much smaller) -->
-          <div class="card mb-4 gradient-soft mx-auto tutor-selector-card">
+          <!-- Tutor Selector Card  -->
+          <div class="card mb-4 card-transparent mx-auto tutor-selector-card">
             <div class="card-body text-center">
               <!-- Tutor Image -->
               <img
@@ -106,7 +109,7 @@
               />
 
               <!-- Dropdown -->
-              <select id="tutorSelect" class="form-select">
+              <select id="tutorSelect" class="form-select card-transparent">
                 <option value="english" <%= selectedTutor==='english'? 'selected':'' %>>
                   English Tutor
                 </option>
@@ -119,6 +122,8 @@
               </select>
             </div>
           </div>
+          <br>
+          <br>
 
           <!-- Chat window -->
           <div
