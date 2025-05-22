@@ -141,17 +141,13 @@
           <h5 class="fw-semibold text-start mb-3">Friend Requests</h5>
           <% receivedRequests.forEach(request => { %>
             <div class="d-flex align-items-center justify-content-between mb-3 friend-card-wrapper">
-              <div class="d-flex align-items-center friend-info">
-                <img
-                  src="<%= request.profilePic || '/svgs/person.svg' %>"
-                  alt=""
-                  class="friend-avatar"
-                />
+              <a href="/profile/<%= request.username %>?from=friends" class="d-flex align-items-center friend-info text-decoration-none text-dark">
+                <img src="<%= request.profilePic || '/svgs/person.svg' %>" alt="" class="friend-avatar" />
                 <div>
-                  <h6><%= request.name %></h6>
+                  <h6 class="mb-0"><%= request.name %></h6>
                   <small>@<%= request.username %></small>
                 </div>
-              </div>
+              </a>
               <form method="POST" action="/accept-request">
                 <input type="hidden" name="fromUsername" value="<%= request.username %>" />
                 <button type="submit" class="btn-outline-accent btn">
@@ -162,7 +158,7 @@
           <% }) %>
           <hr />
         <% } %>
-
+        
         <!-- Suggested vs Search Results Heading -->
         <% if (showSuggested && friends.length > 0) { %>
           <h5 class="fw-semibold text-start mb-3">Suggested Buddies</h5>

@@ -12,158 +12,240 @@
   <link rel="stylesheet" href="/css/profile.css" />
 
   <style>
-  body {
-     height: 100vh;
-     margin-top: 20%;
-     background-color: #ffffff;
-     font-family: Arial, sans-serif;
-     padding-bottom: 140px;
-     overflow-x: hidden;
-   }
-
- .passport-container {
-  width: 100%;
-  max-width: 680px;
-  aspect-ratio: 4 / 5.5;
-  margin: 2rem auto;
-  background-color: #e9e9fe;
-  border-radius: 12px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  background-clip: padding-box;
-
-
- /* Added realistic passport shadow */
- box-shadow:
-   0 12px 20px rgba(0, 0, 0, 0.25),         /* main drop shadow */
-   inset 0 10px 12px rgba(0, 0, 0, 0.25),     /* top inner curve */
-   inset 0 -10px 12px rgba(0, 0, 0, 0.08);   /* bottom inner curve */
-}
-
-@media (max-width: 768px) {
-  .passport-container {
-    width: 100vw;          /* Full screen width */
-    margin: 0;             /* No side margin */
-    border-radius: 0;      /* Optional: flush with screen */
-    aspect-ratio: unset;   /* Let content determine height */
-  }
-}
-
-@media (max-width: 576px) {
-  .passport-container {
-    transform: scale(0.7);
-  }
-}
-
-.passport-map {
-  height: 46.5vh; /* replaces fixed 435px */
-  min-height: 300px; /* fallback minimum */
-  width: 100%;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-  overflow: hidden;
-  padding: 0.5rem;
-
- /* Dual shadow for top and bottom edge simulation */
-   box-shadow:
-   inset 0px -6px 12px -4px rgba(0, 0, 0, 0.25),  /* bottom shadow */
-   inset 0px 6px 12px -4px rgba(0, 0, 0, 0.18);    /* top shadow */
-   background-clip: padding-box;  /* top edge (info to map) */
-}
-
-#map {
- height: 100%;
- margin: 0.2 0.2rem; /* horizontal margins (left & right) */
- border-radius: 8px;
-}
-
-.passport-header {
- background-color: #e9e9fe;
- padding: 1.2rem 2rem 0;
-
-
- /* Only shadows on top, left, and right */
- box-shadow:
-   inset 0px 6px 10px -5px rgba(0, 0, 0, 0.2),   /* top */
-   inset 6px 0px 10px -5px rgba(0, 0, 0, 0.2),   /* left */
-   inset -6px 0px 10px -5px rgba(0, 0, 0, 0.2);  /* right */
-}
-
-
-.passport-title-line {
- display: flex;
- justify-content: space-between;
- align-items: center;
- padding-bottom: 1rem;
- font-weight: bold;
- font-size: 14px;
- text-transform: uppercase;
-}
-
-
-.passport-body {
- display: flex;
- padding: 2rem;
- flex-wrap: wrap;
-}
-
-
-.photo-section {
- display: flex;
- flex-direction: column;
- align-items: center;
-}
-
-
-.photo-section img {
- width: 200px;
- height: 220px;
- object-fit: cover;
- border-radius: 6px;
- margin-bottom: 0.5rem;
-
-
- /* Add soft shadow to mimic a printed photo or embossed placeholder */
- box-shadow:
-   0 4px 8px rgba(0, 0, 0, 0.2),     /* subtle outer shadow */
-   0 2px 4px rgba(0, 0, 0, 0.1),     /* extra depth */
-   inset 0 0 4px rgba(0, 0, 0, 0.08);
-}  
-
-.info-section {
- flex: 1;
- display: grid;
- grid-template-columns: 1fr 1fr;
- column-gap: 30px;
- row-gap: 16px;
- padding-left: 2rem;
-}
-
-
-.info-label {
- font-style: italic;
- font-size: 13px;
- color: black;
-}
-
-.info-value
- {      
-    font-weight: bold;
+     /* Make the gradient cover the full viewport once, no repeat */
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
     }
- 
-.passport-code {
- font-family: monospace;
- font-size: 15.2px; /* or 16px — increase as needed */
- font-weight: bold;
- margin-top: 2rem; /* pushes it down */
- margin-left: 1rem;
- margin-right: 1rem;
- white-space: pre-wrap;
- word-break: break-word;
- text-align: left;
-}
+    body {
+      background: linear-gradient(to bottom, #ffffff, #ffa500) no-repeat fixed;
+      background-size: 100% 100%;
+      font-family: Arial, sans-serif;
+      margin-top: 20%;       /* preserve your vertical offset */
+      padding-bottom: 140px; /* preserve bottom spacing */
+      overflow-x: hidden;
+    }
 
+    /* ── PASSPORT STYLES (unchanged) ─────────────────────────────────── */
+    .passport-container {
+      width: 100%;
+      max-width: 680px;
+      aspect-ratio: 4 / 5.5;
+      margin: 2rem auto;
+      background-color: #e9e9fe;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background-clip: padding-box;
+      box-shadow:
+        0 12px 20px rgba(0, 0, 0, 0.25),
+        inset 0 10px 12px rgba(0, 0, 0, 0.25),
+        inset 0 -10px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    @media (max-width: 768px) {
+      .passport-container {
+        width: 100vw;
+        margin: 0;
+        border-radius: 0;
+        aspect-ratio: unset;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .passport-container {
+        transform: scale(0.7);
+      }
+    }
+
+    .passport-map {
+      height: 40vh;
+      min-height: 300px;
+      width: 100%;
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+      overflow: hidden;
+      padding: 0.5rem;
+      box-shadow:
+        inset 0px -6px 12px -4px rgba(0, 0, 0, 0.25),
+        inset 0px 6px 12px -4px rgba(0, 0, 0, 0.18);
+      background-clip: padding-box;
+    }
+
+    #map {
+      height: 100%;
+      margin: 0.2rem;
+      border-radius: 8px;
+    }
+
+    .passport-header {
+      background-color: #e9e9fe;
+      padding: 1.2rem 2rem 0;
+      box-shadow:
+        inset 0px 6px 10px -5px rgba(0, 0, 0, 0.2),
+        inset 6px 0px 10px -5px rgba(0, 0, 0, 0.2),
+        inset -6px 0px 10px -5px rgba(0, 0, 0, 0.2);
+    }
+
+    .passport-title-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 1rem;
+      font-weight: bold;
+      font-size: 14px;
+      text-transform: uppercase;
+    }
+
+    .passport-body {
+      display: flex;
+      padding: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .photo-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .photo-section img {
+      width: 200px;
+      height: 220px;
+      object-fit: cover;
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+      box-shadow:
+        0 4px 8px rgba(0, 0, 0, 0.2),
+        0 2px 4px rgba(0, 0, 0, 0.1),
+        inset 0 0 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .photo-upload-btn {
+      background: #dcdcff;
+      padding: 4px 12px;
+      border-radius: 10px;
+      font-size: 0.9em;
+      color: black;
+      cursor: pointer;
+    }
+
+    .info-section {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: 30px;
+      row-gap: 16px;
+      padding-left: 2rem;
+    }
+
+    .info-label {
+      font-style: italic;
+      font-size: 13px;
+      color: black;
+    }
+
+    .passport-title {
+      font-weight: bold;
+    }
+
+    .form-control,
+    .form-select {
+      background-color: white;
+      border: none;
+      border-radius: 0;
+    }
+
+    .form-control.filled,
+    .form-select.filled {
+      background-color: #e9e9fe;
+      font-weight: bold;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+      background-color: white;
+      box-shadow: none;
+    }
+
+    .passport-code {
+      font-family: monospace;
+      font-size: 15.2px;
+      font-weight: bold;
+      margin-top: 2rem;
+      margin-left: 1rem;
+      margin-right: 1rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      text-align: left;
+    }
+
+    .btn-wrapper {
+      text-align: center;
+      margin: 1rem 0 2rem;
+    }
+
+    .btn-glow {
+      position: relative;
+      color: #fff;
+      background: linear-gradient(135deg, #6f00ff, #00d0ff);
+      border: none;
+      font-weight: bold;
+      font-size: 0.7em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 12px rgba(111, 0, 255, 0.5),
+        0 0 24px rgba(0, 208, 255, 0.4);
+      transition: all 0.3s ease-in-out;
+    }
+
+    .btn-glow::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(
+        circle,
+        rgba(255, 255, 255, 0.25) 0%,
+        transparent 60%
+      );
+      animation: rotate 3s linear infinite;
+    }
+
+    @keyframes rotate {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .btn-glow:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px rgba(111, 0, 255, 0.8),
+        0 0 40px rgba(0, 208, 255, 0.6);
+    }
+
+    .swal2-glow-popup {
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(111, 0, 255, 0.5),
+        0 0 40px rgba(0, 208, 255, 0.4);
+      background: linear-gradient(135deg, #6f00ff, #00d0ff);
+      color: white;
+    }
+
+    #flag-emoji {
+      font-family: 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji', sans-serif;
+      font-size: 1.2em;
+    }
   </style>
 </head>
 
@@ -195,7 +277,7 @@
         </div>
         <div>
           <div class="info-label">Email</div>
-          <div class="info-value"><%= user2.email %></div>
+          <div class="info-value"><%= user2.username %></div>
         </div>
         <div>
           <div class="info-label">Username</div>
@@ -224,7 +306,7 @@
   <div class="text-center mt-3">
     <% if (!isOwnProfile) { %>
       <% if (from === 'messages') { %>
-        <a href="/chat/<%= [user2.username, user2.username].sort().join('_') %>" class="btn btn-primary">
+        <a href="/chat/<%= [currentUser.username, user2.username].sort().join('_') %>" class="btn btn-primary">
           Message <%= user2.name.split(' ')[0] %>
         </a>
       <% } else if (from === 'friends') { %>
@@ -289,13 +371,12 @@
   });
 </script>
 
+<script>
+  const lat = <%- JSON.stringify(user2.location?.lat || 0) %>;
+  const lng = <%- JSON.stringify(user2.location?.lng || 0) %>;
+</script>
 
-  <script>
-    const lat = <%- JSON.stringify(user2?.location?.lat || 0) %>;
-    const lng = <%- JSON.stringify(user2?.location?.lng || 0) %>;
-  </script>
-
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
     function flagFromCode(code) {
       return code.toUpperCase().split('').map(c => String.fromCodePoint(127397 + c.charCodeAt())).join('');
@@ -319,16 +400,17 @@
 
     if (lat && lng) detectCountryCode(lat, lng);
 
-    function updatePassportCode() {
-      const name = "<%= user2.name.toUpperCase() %>";
-      const username = "<%= user2.username.toUpperCase() %>";
-      const native = "<%= (user2.nativeLanguage || '').toUpperCase() %>";
-      const target = "<%= (user2.targetLanguage || '').toUpperCase() %>";
-      const pad = (txt, len = 15) => (txt + "<<<<<<<<<<<<<<<<<<<<<").slice(0, len);
-      const line1 = `<<${pad(username)}<<<<<<<<<<${pad(name)}<<<<<<<<<<<<<<<<<<<<<`;
-      const line2 = `<<<<<<<<<<<<<${pad(target)}<<<<<<<<<<${pad(native)}<<<<<<<<<<`;
-      document.getElementById("passportCode").innerText = `${line1}\n${line2}`;
-    }
+  function updatePassportCode() {
+    const name = "<%= (user2.name || '').toUpperCase() %>";
+    const username = "<%= (user2.username || '').toUpperCase() %>";
+    const native = "<%= (user2.nativeLanguage || '').toUpperCase() %>";
+    const target = "<%= (user2.targetLanguage || '').toUpperCase() %>";
+    const pad = (txt, len = 15) => (txt + "<<<<<<<<<<<<<<<<<<<<<").slice(0, len);
+    const line1 = `<<${pad(username)}<<<<<<<<<<${pad(name)}<<<<<<<<<<<<<<<<<<<<<`;
+    const line2 = `<<<<<<<<<<<<<${pad(target)}<<<<<<<<<<${pad(native)}<<<<<<<<<<`;
+    document.getElementById("passportCode").innerText = `${line1}\n${line2}`;
+  }
+
 
     updatePassportCode();
   </script>

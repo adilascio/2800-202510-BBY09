@@ -60,38 +60,37 @@ if (!HF_API_TOKEN) {
 const hf = new InferenceClient(HF_API_TOKEN);
 
 (async () => {
-	try {
-		const dbResult = await connectToDatabase();
-		db = dbResult.db;
-		media = db.collection('media');
-		usersCollection = dbResult.users;
-		messagesCollection = db.collection('messages');
-		locationsCollection = dbResult.locations;
-		languagesCollection = dbResult.languages;
-		friendshipsCollection = dbResult.friendships;
-		gameResultsCollection = dbResult.gameResults;
-		dailyStatsCollection = dbResult.dailyStats;
+  try {
+    const dbResult = await connectToDatabase();
+    db = dbResult.db;
+    media = db.collection('media');
+    usersCollection = dbResult.users;
+    messagesCollection = db.collection('messages');
+    locationsCollection = dbResult.locations;
+    languagesCollection = dbResult.languages;
+    friendshipsCollection = dbResult.friendships;
+    gameResultsCollection = dbResult.gameResults;
+    dailyStatsCollection = dbResult.dailyStats;
 
-		app.listen(PORT, () =>
-			console.log(`Server running on http://localhost:${PORT}`)
-		);
-	} catch (err) {
-		console.error('Failed to connect to MongoDB:', err);
-		process.exit(1);
-	}
+    app.listen(PORT, () =>
+      console.log(`Server running on http://localhost:${PORT}`)
+    );
+  } catch (err) {
+    console.error('Failed to connect to MongoDB:', err);
+    process.exit(1);
+  }
 })();
 
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.urlencoded({
-	extended: true
-}));
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 app.use(session({
-	secret: process.env.SESSION_SECRET || 'temp-secret',
-	resave: false,
-	saveUninitialized: false
+  secret: process.env.SESSION_SECRET || 'temp-secret',
+  resave: false,
+  saveUninitialized: false
 }));
+
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -122,7 +121,7 @@ app.get('/login', (req, res) => {
 
 app.post('/login', async (req, res) => {
 	const schema = Joi.object({
-		email: Joi.string().email().required(),
+		email: Joi.string().required(),
 		password: Joi.string().required()
 	});
 
@@ -136,8 +135,13 @@ app.post('/login', async (req, res) => {
 	}
 
 	const user = await usersCollection.findOne({
-		email: req.body.email
+  		$or: [
+    		{ email: req.body.email },
+    		{ username: req.body.email }
+  		]
 	});
+
+
 	if (!user || !(await bcrypt.compare(req.body.password, user.password))) {
 		return res.status(401).json({
 			errorMessage: 'Incorrect email or password.'
@@ -165,49 +169,56 @@ app.get('/signup', (req, res) => {
   });
 });
 
-app.get("/game", requireLogin, canPlayToday, (req, res) => {
+app.get("/game", requireLogin, async (req, res) => {
+	const user = await usersCollection.findOne({ email: req.session.user.email });
+	const todayPST = DateTime.now().setZone('America/Los_Angeles').toFormat('yyyy-MM-dd');
+	const language = req.query.lang || 'en';
+
+	const existingPuzzle = await gameResultsCollection.findOne({
+		userId: user._id,
+		date: todayPST,
+		language
+	});
+
+	let letterBank = existingPuzzle?.letters || null;
+	const result = existingPuzzle?.wordsFound || [];
+
 	res.render("game", {
 		user: req.session.user,
 		activeTab: "puzzles",
-		message: req.playMessage || null,
-		result: req.gameResult || []
+		message: null,
+		result,
+		letters: letterBank,
+		selectedLang: language
 	});
 });
 
 app.post('/played-today', requireLogin, async (req, res) => {
-	const todayPST = DateTime.now()
-		.setZone('America/Los_Angeles')
-		.toFormat('yyyy-MM-dd');
+	const todayPST = DateTime.now().setZone('America/Los_Angeles').toFormat('yyyy-MM-dd');
+	const currentUser = await usersCollection.findOne({ email: req.session.user.email });
 
-	const currentUser = await usersCollection.findOne({
-		email: req.session.user.email
-	});
-	const {
-		language,
-		result
-	} = req.body;
+	const { language, result, letters } = req.body;
 
-	if (!language || !result) {
-		return res.status(400).send("Missing language or result data");
+	if (!language || !result || !letters) {
+		return res.status(400).send("Missing language, result, or letters.");
 	}
 
-	await gameResultsCollection.updateOne({
-		userId: currentUser._id,
-		date: todayPST,
-		language
-	}, {
-		$set: {
-			wordsFound: result,
-			score: result.length,
-			updatedAt: new Date()
-		}
-	}, {
-		upsert: true
-	});
-
+	await gameResultsCollection.updateOne(
+		{ userId: currentUser._id, date: todayPST, language },
+		{
+			$set: {
+				wordsFound: result,
+				letters,
+				score: result.length,
+				updatedAt: new Date()
+			}
+		},
+		{ upsert: true }
+	);
 
 	res.sendStatus(200);
 });
+
 
 function canPlayToday(req, res, next) {
 	usersCollection.findOne({
@@ -534,7 +545,11 @@ app.post('/accept-request', requireLogin, async (req, res) => {
 
   // Optional: store chatId
   const chatId = [currentUser.username, fromUsername].sort().join('_');
-  await usersCollection.updateOne({ username: currentUser.username }, { $addToSet: { chats: chatId } });
+  await db.collection('chats').updateOne(
+	{ chatId },
+	{ $setOnInsert: { participants: [currentUser, fromUsername], createdAt: new Date() } },
+	{ upsert: true }
+  );
   await usersCollection.updateOne({ username: fromUsername }, { $addToSet: { chats: chatId } });
 
   res.redirect('/friends');
@@ -764,11 +779,12 @@ app.post('/settings', requireLogin, async (req, res) => {
 		update.location = null;
 	}
 
-	await usersCollection.updateOne({
-		email: req.session.user.email
-	}, {
-		$set: update
-	});
+	await locationsCollection.updateOne(
+		{ userId: currentUser._id },
+		{ $set: { lat, lng, shareLocation } },
+		{ upsert: true }
+	);
+
 
 	res.redirect('/profile?updated=true');
 });
@@ -801,25 +817,27 @@ app.get('/profile/:username', requireLogin, async (req, res) => {
 		return res.redirect('/profile');
 	}
 
-	const user = await usersCollection.findOne({
-		username
-	});
+	const user = await usersCollection.findOne({ username });
 	if (!user) return res.status(404).render('404');
 
-	const lang = await languagesCollection.findOne({
-		userId: user._id
-	});
+	const lang = await languagesCollection.findOne({ userId: user._id });
+	const location = await locationsCollection.findOne({ userId: user._id });
 
 	res.render('public-profile', {
 		user2: {
 			...user,
-			fullName: formatFullName(user)
+			fullName: formatFullName(user),
+			name: formatFullName(user),
+			nativeLanguage: lang?.nativeLanguage || '',
+			targetLanguage: lang?.targetLanguage || '',
+			location: location || {}
 		},
-		languageInfo: lang || {},
 		isOwnProfile: false,
-		from
+		from,
+		currentUser: req.session.user
 	});
 });
+
 
 
 // AI Chat endpoint
