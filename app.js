@@ -967,6 +967,32 @@ app.post('/api/avatar/describe', async (req, res) => {
 	}
 });
 
+app.post('/delete-account', requireLogin, async (req, res) => {
+	const currentUser = await usersCollection.findOne({ email: req.session.user.email });
+	if (!currentUser) return res.redirect('/login');
+  
+	const userId = currentUser._id;
+  
+	// Delete user-related data
+	await usersCollection.deleteOne({ _id: userId });
+	await friendshipsCollection.deleteMany({ $or: [{ userId }, { friendId: userId }] });
+	await languagesCollection.deleteOne({ userId });
+	await locationsCollection.deleteOne({ userId });
+	await gameResultsCollection.deleteMany({ userId });
+	await media.deleteMany({ userId });
+	await messagesCollection.deleteMany({ chatId: { $regex: currentUser.username } }); // optional cleanup
+  
+	req.session.destroy();
+	res.redirect('/goodbye');
+  });
+  
+
+  app.get('/goodbye', (req, res) => {
+	res.render('goodbye', {
+	  pageTitle: 'Goodbye'
+	});
+  });  
+
 app.post('/api/location/confirm', requireLogin, (req, res) => {
   req.session.locationConfirmed = true;
   res.sendStatus(200);
