@@ -101,7 +101,7 @@ function formatFullName(user) {
 }
 
 function requireLogin(req, res, next) {
-	if (!req.session.user) return res.redirect('/login');
+	if (!req.session.user) return res.redirect('/');
 	next();
 }
 
@@ -113,14 +113,14 @@ app.get('/', (req, res) => {
 	});
 });
 
-app.get('/login', (req, res) => {
-	res.render('login', {
+app.get('/', (req, res) => {
+	res.render('', {
 		pageTitle: 'Log In',
 		errorMessage: null
 	});
 });
 
-app.post('/login', async (req, res) => {
+app.post('/', async (req, res) => {
 	const schema = Joi.object({
 		email: Joi.string().required(),
 		password: Joi.string().required()
@@ -333,7 +333,7 @@ app.get('/friends', requireLogin, async (req, res) => {
 	});
 	if (!currentUser) {
 		console.error('User not found for session email:', req.session.user.email);
-		return res.redirect('/login');
+		return res.redirect('/');
 	}
 
 	const userLang = await languagesCollection.findOne({
@@ -569,13 +569,13 @@ app.post('/cancel-request', requireLogin, async (req, res) => {
 
 	if (!currentUser) {
 		console.error('User not found for session email:', req.session.user.email);
-		return res.redirect('/login');
+		return res.redirect('/');
 	}
 
 
 	if (!currentUser) {
 		console.error('User not found for session email:', req.session.user.email);
-		return res.redirect('/login');
+		return res.redirect('/');
 	}
 
 
@@ -600,9 +600,9 @@ app.post('/cancel-request', requireLogin, async (req, res) => {
 
 app.get('/profile', requireLogin, async (req, res) => {
   const user = await usersCollection.findOne({ email: req.session.user.email });
-  if (!user) return res.redirect('/login');
+  if (!user) return res.redirect('/');
 
-  // Profile picture
+//   Profile picture
   const profilePic = await media.findOne({
     userId: user._id,
     type: "profilePic"
@@ -619,7 +619,7 @@ app.get('/profile', requireLogin, async (req, res) => {
   res.render('profile', {
     user,
     languages,
-    profilePicUrl: profilePic?.url || '/uploads/default.jpg',
+    profilePicUrl: profilePic?.url || '/svgs/person.svg',
     showLocationPrompt
   });
 });
@@ -739,12 +739,12 @@ app.get('/messages', requireLogin, async (req, res) => {
 
 	if (!currentUser) {
 		console.error('User not found for session email:', req.session.user.email);
-		return res.redirect('/login');
+		return res.redirect('/');
 	}
 
 	if (!currentUser) {
 		console.error('User not found for session email:', req.session.user.email);
-		return res.redirect('/login');
+		return res.redirect('/');
 	}
 
 	const accepted = await friendshipsCollection.find({
@@ -1016,7 +1016,7 @@ app.post('/api/avatar/describe', async (req, res) => {
 
 app.post('/delete-account', requireLogin, async (req, res) => {
 	const currentUser = await usersCollection.findOne({ email: req.session.user.email });
-	if (!currentUser) return res.redirect('/login');
+	if (!currentUser) return res.redirect('/');
   
 	const userId = currentUser._id;
   
