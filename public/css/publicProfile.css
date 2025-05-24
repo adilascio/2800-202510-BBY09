@@ -12,28 +12,23 @@
     height: 300px;
     border-radius: 8px;
   }
-
-      /* Make the gradient cover the full viewport once, no repeat */
-    html,
-    body {
+  
+  /* Make the gradient cover the full viewport once, no repeat */
+ html, body {
       height: 100%;
       margin: 0;
       padding: 0;
     }
-
     body {
-      background: linear-gradient(to bottom, #ffffff, #ffa500);
-      background-attachment: fixed;
+      background: linear-gradient(to bottom, #ffffff, #ffa500) no-repeat fixed;
       background-size: 100% 100%;
       font-family: Arial, sans-serif;
-      margin-top: 20%;       
-      padding-bottom: 140px; 
+      margin-top: 20%;       /* preserve your vertical offset */
+      padding-bottom: 140px; /* preserve bottom spacing */
       overflow-x: hidden;
-      overflow-y: auto;
     }
 
-
-    /* ── PASSPORT STYLES ─────────────────────────────────── */
+    /* ── PASSPORT STYLES (unchanged) ─────────────────────────────────── */
     .passport-container {
       width: 100%;
       max-width: 680px;
@@ -216,9 +211,11 @@
       left: -50%;
       width: 200%;
       height: 200%;
-      background: radial-gradient(circle,
-          rgba(255, 255, 255, 0.25) 0%,
-          transparent 60%);
+      background: radial-gradient(
+        circle,
+        rgba(255, 255, 255, 0.25) 0%,
+        transparent 60%
+      );
       animation: rotate 3s linear infinite;
     }
 
@@ -226,7 +223,6 @@
       from {
         transform: rotate(0deg);
       }
-
       to {
         transform: rotate(360deg);
       }
@@ -251,4 +247,3 @@
         'Noto Color Emoji', sans-serif;
       font-size: 1.2em;
     }
-  

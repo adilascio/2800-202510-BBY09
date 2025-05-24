@@ -1,12 +1,46 @@
-.input-error {
-  border: 2px solid red !important;
-  animation: shake 0.2s ease-in-out;
-}
+/* Accent palette */
+    :root {
+      --accent-cyan: #17caff;
+      --accent-cyan-dark: #0dbdcf;
+    }
 
-@keyframes shake {
-  0% { transform: translateX(0); }
-  25% { transform: translateX(-4px); }
-  50% { transform: translateX(4px); }
-  75% { transform: translateX(-4px); }
-  100% { transform: translateX(0); }
-}
+    /* Page background: white at top → orange at bottom */
+    body {
+      margin: 0;
+      background: linear-gradient(to bottom, #ffffff, #ffa500);
+    }
+
+    /* Soft gradient utility, shifted toward cyan */
+    .gradient-soft {
+      background: linear-gradient(
+        to bottom right,
+        #f0fdff,
+        #e6f7ff
+      ) !important;
+    }
+
+    /* Frosted-glass card */
+    .card-transparent {
+      background-color: rgba(255, 255, 255, 0.5) !important;
+      backdrop-filter: blur(8px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.3) !important;
+      border-radius: 0.5rem !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+      padding: 1rem;
+    }
+
+    /* Cyan button variant */
+    .btn-accent {
+      background-color: var(--accent-cyan) !important;
+      border-color: var(--accent-cyan) !important;
+      color: #fff !important;
+    }
+    .btn-accent:hover {
+      background-color: var(--accent-cyan-dark) !important;
+      border-color: var(--accent-cyan-dark) !important;
+    }
+
+    /* Helper to color text */
+    .text-accent {
+      color: var(--accent-cyan) !important;
+    }

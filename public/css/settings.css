@@ -1,0 +1,50 @@
+    body {
+      background: linear-gradient(to bottom, #ffffff, #ffa500);
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+    }
+
+    .card-transparent {
+      background-color: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-top: 4rem;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-check-input {
+      border-radius: 10px;
+    }
+
+    .form-check-label {
+      font-weight: 500;
+    }
+
+    .btn {
+      border-radius: 12px;
+    }
+
+    .danger-zone {
+      border-top: 2px solid #dc3545;
+      margin-top: 2.5rem;
+      padding-top: 2rem;
+    }
+
+    .danger-zone h5 {
+      color: #dc3545;
+      font-weight: bold;
+    }
+
+    .btn-danger {
+      background-color: #dc3545;
+      border-color: #dc3545;
+    }
+
+    .btn-danger:hover {
+      background-color: #bb2d3b;
+    }
+
+    .swal2-popup {
+      border-radius: 14px !important;
+    }
