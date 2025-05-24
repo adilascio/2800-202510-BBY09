@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const username = form.getAttribute('data-username');
+      const username = form.querySelector('input[name="targetUsername"]').value;
       const button = form.querySelector('button');
 
       const isRequested = button.classList.contains('requested');
@@ -54,7 +54,8 @@ document.addEventListener('DOMContentLoaded', () => {
             button.innerHTML = '<i class="bi bi-clock me-1"></i>Requested';
           }
         } else {
-          Swal.fire('Error', 'Action failed', 'error');
+          const error = await res.json();
+          Swal.fire('Error', error.error || 'Action failed', 'error');
         }
       } catch (err) {
         console.error('Error:', err);

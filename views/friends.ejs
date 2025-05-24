@@ -1,97 +1,214 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+  <!-- META -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Find Friends</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/friends.css" />
+  <title>Find Buddies</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/css/index.css" />
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+  />
+
+  <!-- INLINE STYLES -->
+  <style>
+    /* Accent palette */
+    :root {
+      --accent-cyan: #17caff;
+      --accent-cyan-dark: #0dbdcf;
+    }
+
+    /* Page background: white → orange */
+    body {
+      margin: 0;
+      background: linear-gradient(to bottom, #ffffff, #ffa500) no-repeat fixed;
+      background-size: 100% 100%;
+    }
+
+    /* Soft gradient utility */
+    .gradient-soft {
+      background: linear-gradient(
+        to bottom right,
+        #f0fdff,
+        #e6f7ff
+      ) !important;
+    }
+
+    /* Frosted-glass card */
+    .card-transparent {
+      background-color: rgba(255, 255, 255, 0.5) !important;
+      backdrop-filter: blur(8px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.3) !important;
+      border-radius: 0.5rem !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    /* Cyan button variant */
+    .btn-accent {
+      background-color: var(--accent-cyan) !important;
+      border-color: var(--accent-cyan) !important;
+      color: #fff !important;
+    }
+    .btn-accent:hover {
+      background-color: var(--accent-cyan-dark) !important;
+      border-color: var(--accent-cyan-dark) !important;
+    }
+
+    /* Cyan outline button */
+    .btn-outline-accent {
+      color: var(--accent-cyan) !important;
+      border-color: var(--accent-cyan) !important;
+    }
+    .btn-outline-accent:hover {
+      background-color: var(--accent-cyan) !important;
+      color: #fff !important;
+    }
+
+    /* Accent text helper */
+    .text-accent {
+      color: var(--accent-cyan) !important;
+    }
+
+    /* Tighten spacing inside friend-cards */
+    .friend-card-wrapper {
+      padding: 0.75rem;
+    }
+    .friend-avatar {
+      width: 48px;
+      height: 48px;
+      object-fit: cover;
+      border-radius: 50%;
+      margin-right: 0.75rem;
+    }
+    .friend-info h6 {
+      margin: 0;
+    }
+    .friend-info small {
+      color: #666;
+    }
+  </style>
 </head>
+
 <body>
-  <div class="container py-5">
-    <div class="text-center mb-4">
-      <h1 class="title text-start">Add Buddies</h1>
-      <p class="subtitle text-start">Search and connect with people you know</p>
-
-      <form class="search-bar mt-3 mx-auto" style="max-width: 400px;" method="GET" action="/friends">
-        <input
-          type="text"
-          class="form-control"
-          id="searchInput"
-          name="search"
-          placeholder="Search by name or username..."
-          value="<%= searchQuery || '' %>"
-          oninput="this.form.submit()"
-        />
-      </form>
-    </div>
-
-    <% if (receivedRequests.length > 0) { %>
-      <div class="mb-3">
-        <h5 class="fw-semibold text-start">Friend Requests</h5>
-        <% receivedRequests.forEach(request => { %>
-          <div class="friend-card mb-3">
-            <div class="friend-info">
-              <img src="<%= request.avatar || '/svgs/person.svg'  %>" class="friend-avatar" alt="<%= request.username %>">
-              <div class="friend-text">
-                <h6><%= request.name %></h6>
-                <small><%= request.username %></small>
-              </div>
-            </div>
-            <form method="POST" action="/accept-request" class="d-inline">
-              <input type="hidden" name="fromUsername" value="<%= request.username %>">
-              <button type="submit" class="btn btn-outline-success">
-                <i class="bi bi-check-circle me-1"></i>Accept
-              </button>
-            </form>
-          </div>
-        <% }) %>
-      </div>
-    <% } %>
-
-    <% if (showSuggested && friends.length > 0) { %>
-      <div class="mb-3">
-        <h5 class="fw-semibold text-start">Suggested Buddies</h5>
-      </div>
-    <% } else if (!showSuggested && friends.length > 0) { %>
-      <div class="mb-3">
-        <h5 class="fw-semibold text-start">Search Results</h5>
-      </div>
-    <% } %>
-
-    <div class="friend-list" id="friendList">
-      <% if (friends.length === 0) { %>
-        <p class="text-muted">No matching users found.</p>
-      <% } %>
-      <% friends.forEach(friend => { %>
-        <div class="friend-card mb-3 friend-card-wrapper">
-          <div class="friend-info">
-            <img src="<%= friend.profilePic || '/svgs/person.svg' %>" class="friend-avatar" alt="<%= friend.username %>">
-            <div class="friend-text">
-              <h6><%= friend.name %></h6>
-              <small><%= friend.username %><br><%= friend.description %></small>
-            </div>
-          </div>
-          <% if (friend.status === 'added') { %>
-            <button class="btn btn-success" disabled>
-              <i class="bi bi-check-lg me-1"></i>Added
-            </button>
-          <% } else { %>
-            <form class="send-request-form d-inline" data-username="<%= friend.username %>">
-              <button type="submit" class="btn btn-outline-dark">
-                <i class="bi bi-person-plus-fill me-1"></i>Add
-              </button>
-            </form>
-          <% } %>
-        </div>
-      <% }) %>
-    </div>
+  <!-- HEADER with soft gradient -->
+  <div class="gradient-soft">
+    <%- include('templates/header', { pageTitle: 'Find Buddies' }) %>
   </div>
 
+  <!-- MAIN: centered responsive card -->
+  <main class="container-fluid d-flex justify-content-center align-items-start py-5">
+    <div class="col-12 col-md-8 col-lg-6">
+
+      <!-- All content inside one frosted-glass card -->
+      <div class="card card-transparent p-4 mb-5">
+
+        <!-- Title -->
+        <div class="text-center mb-4">
+          <h1 class="text-accent mb-1">Add Buddies</h1>
+          <p class="mb-3">Search and connect with people you know</p>
+
+          <!-- Search Bar -->
+          <form
+            class="d-flex justify-content-center"
+            style="max-width:400px; margin:auto;"
+            method="GET"
+            action="/friends"
+          >
+            <input
+              type="text"
+              name="search"
+              value="<%= searchQuery || '' %>"
+              class="form-control"
+              placeholder="Search by name or username…"
+              oninput="this.form.submit()"
+            />
+            <button type="submit" class="btn btn-accent ms-2">
+              <i class="bi bi-search"></i>
+            </button>
+          </form>
+        </div>
+
+        <!-- Friend Requests -->
+        <% if (receivedRequests.length > 0) { %>
+          <h5 class="fw-semibold text-start mb-3">Friend Requests</h5>
+          <% receivedRequests.forEach(request => { %>
+            <div class="d-flex align-items-center justify-content-between mb-3 friend-card-wrapper">
+              <a href="/profile/<%= request.username %>?from=friends" class="d-flex align-items-center friend-info text-decoration-none text-dark">
+                <img src="<%= request.profilePic || '/svgs/person.svg' %>" alt="" class="friend-avatar" />
+                <div>
+                  <h6 class="mb-0"><%= request.name %></h6>
+                  <small>@<%= request.username %></small>
+                </div>
+              </a>
+              <form method="POST" action="/accept-request">
+                <input type="hidden" name="fromUsername" value="<%= request.username %>" />
+                <button type="submit" class="btn-outline-accent btn">
+                  <i class="bi bi-check-circle me-1"></i>Accept
+                </button>
+              </form>
+            </div>
+          <% }) %>
+          <hr />
+        <% } %>
+        
+        <!-- Suggested vs Search Results Heading -->
+        <% if (showSuggested && friends.length > 0) { %>
+          <h5 class="fw-semibold text-start mb-3">Suggested Buddies</h5>
+        <% } else if (!showSuggested && friends.length > 0) { %>
+          <h5 class="fw-semibold text-start mb-3">Search Results</h5>
+        <% } %>
+
+        <!-- Friend List -->
+        <% if (friends.length === 0) { %>
+          <p class="text-muted text-center">No users found.</p>
+        <% } %>
+        <% friends.forEach(friend => { %>
+          <div class="d-flex align-items-center justify-content-between mb-3 friend-card-wrapper">
+            <div class="d-flex align-items-center friend-info">
+              <a href="/profile/<%= friend.username %>">
+                <img
+                  src="<%= friend.profilePic || '/svgs/person.svg' %>"
+                  alt=""
+                  class="friend-avatar"
+                />
+              </a>
+              <div>
+                <h6><%= friend.name %></h6>
+                <small>@<%= friend.username %> · <%= friend.description %></small>
+              </div>
+            </div>
+            <% if (friend.status === 'added') { %>
+              <button class="btn-accent btn" disabled>
+                <i class="bi bi-check-lg me-1"></i>Added
+              </button>
+            <% } else { %>
+              <form class="send-request-form">
+                <input type="hidden" name="targetUsername" value="<%= friend.username %>" />
+                <button type="submit" class="btn-accent btn">
+                  <i class="bi bi-person-plus-fill me-1"></i>Add
+                </button>
+              </form>
+            <% } %>
+          </div>
+        <% }) %>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- NAVBAR -->
+  <%- include('templates/navbar', { activeTab: 'friends' }) %>
+
+  <!-- SCRIPTS -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="/js/friends.js"></script>
-  
-  <%- include('templates/navbar', { activeTab: 'messages' }) %>
 </body>
 </html>

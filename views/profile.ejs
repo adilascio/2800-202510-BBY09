@@ -1,174 +1,538 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Your Profile</title>
 
-  <!-- CSS -->
+  <!-- CSS dependencies -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet" />
   <link href="https://unpkg.com/leaflet/dist/leaflet.css" rel="stylesheet" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-  <link rel="stylesheet" href="/css/profile.css">
-  <link rel="stylesheet" href="/css/navbar.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/profile.css" />
 
   <style>
-    #flag-emoji {
-      font-family: "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
-      font-size: 1.2em;
+    /* Make the gradient cover the full viewport once, no repeat */
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
     }
+
+    body {
+      background: linear-gradient(to bottom, #ffffff, #ffa500);
+      background-attachment: fixed;
+      background-size: 100% 100%;
+      font-family: Arial, sans-serif;
+      margin-top: 20%;       
+      padding-bottom: 140px; 
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+
+    /* ── PASSPORT STYLES ─────────────────────────────────── */
+    .passport-container {
+      width: 100%;
+      max-width: 680px;
+      aspect-ratio: 4 / 5.5;
+      margin: 2rem auto;
+      background-color: #e9e9fe;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background-clip: padding-box;
+      box-shadow:
+        0 12px 20px rgba(0, 0, 0, 0.25),
+        inset 0 10px 12px rgba(0, 0, 0, 0.25),
+        inset 0 -10px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    @media (max-width: 768px) {
+      .passport-container {
+        width: 100vw;
+        margin: 0;
+        border-radius: 0;
+        aspect-ratio: unset;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .passport-container {
+        transform: scale(0.7);
+      }
+    }
+
+    .passport-map {
+      height: 40vh;
+      min-height: 300px;
+      width: 100%;
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+      overflow: hidden;
+      padding: 0.5rem;
+      box-shadow:
+        inset 0px -6px 12px -4px rgba(0, 0, 0, 0.25),
+        inset 0px 6px 12px -4px rgba(0, 0, 0, 0.18);
+      background-clip: padding-box;
+    }
+
     #map {
-      height: 300px;
+      height: 100%;
+      margin: 0.2rem;
       border-radius: 8px;
     }
-    body {
-     margin-bottom : 300px;
+
+    .passport-header {
+      background-color: #e9e9fe;
+      padding: 1.2rem 2rem 0;
+      box-shadow:
+        inset 0px 6px 10px -5px rgba(0, 0, 0, 0.2),
+        inset 6px 0px 10px -5px rgba(0, 0, 0, 0.2),
+        inset -6px 0px 10px -5px rgba(0, 0, 0, 0.2);
     }
 
-    .page-content {
-   padding-bottom: 80px;
-   }
+    .passport-title-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 1rem;
+      font-weight: bold;
+      font-size: 14px;
+      text-transform: uppercase;
+    }
 
+    .passport-body {
+      display: flex;
+      padding: 2rem;
+      flex-wrap: wrap;
+    }
 
-    .container_py-5{
-    padding-bottom: 400px;
-    background-color: #040404;
-  }
+    .photo-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .photo-section img {
+      width: 200px;
+      height: 220px;
+      object-fit: cover;
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+      box-shadow:
+        0 4px 8px rgba(0, 0, 0, 0.2),
+        0 2px 4px rgba(0, 0, 0, 0.1),
+        inset 0 0 4px rgba(0, 0, 0, 0.08);
+    }
+
+    .photo-upload-btn {
+      background: #dcdcff;
+      padding: 4px 12px;
+      border-radius: 10px;
+      font-size: 0.9em;
+      color: black;
+      cursor: pointer;
+    }
+
+    .info-section {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: 30px;
+      row-gap: 16px;
+      padding-left: 2rem;
+    }
+
+    .info-label {
+      font-style: italic;
+      font-size: 13px;
+      color: black;
+    }
+
+    .passport-title {
+      font-weight: bold;
+    }
+
+    .form-control,
+    .form-select {
+      background-color: white;
+      border: none;
+      border-radius: 0;
+    }
+
+    .form-control.filled,
+    .form-select.filled {
+      background-color: #e9e9fe;
+      font-weight: bold;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+      background-color: white;
+      box-shadow: none;
+    }
+
+    .passport-code {
+      font-family: monospace;
+      font-size: 15.2px;
+      font-weight: bold;
+      margin-top: 2rem;
+      margin-left: 1rem;
+      margin-right: 1rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      text-align: left;
+    }
+
+    .btn-wrapper {
+      text-align: center;
+      margin: 1rem 0 2rem;
+    }
+
+    .btn-glow {
+      position: relative;
+      color: #fff;
+      background: linear-gradient(135deg, #6f00ff, #00d0ff);
+      border: none;
+      font-weight: bold;
+      font-size: 0.7em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 12px rgba(111, 0, 255, 0.5),
+        0 0 24px rgba(0, 208, 255, 0.4);
+      transition: all 0.3s ease-in-out;
+    }
+
+    .btn-glow::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle,
+          rgba(255, 255, 255, 0.25) 0%,
+          transparent 60%);
+      animation: rotate 3s linear infinite;
+    }
+
+    @keyframes rotate {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .btn-glow:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px rgba(111, 0, 255, 0.8),
+        0 0 40px rgba(0, 208, 255, 0.6);
+    }
+
+    .swal2-glow-popup {
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(111, 0, 255, 0.5),
+        0 0 40px rgba(0, 208, 255, 0.4);
+      background: linear-gradient(135deg, #6f00ff, #00d0ff);
+      color: white;
+    }
+
+    #flag-emoji {
+      font-family: 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji', sans-serif;
+      font-size: 1.2em;
+    }
   </style>
 </head>
 
-<body class="container py-5 page-content">
+<body>
 
-  <%- include('templates/header', { pageTitle: 'Profile' }) %>
+  <body style="margin: 0; padding: 0; overflow-x: hidden;">
+    <%- include('templates/header', { pageTitle: 'Profile' }) %>
 
-   <h2 class="mb-4">Edit Your Profile</h2>
+      <main style="min-height: 100vh; padding-bottom: 200px; padding-top: 50px;">
+        <div class="passport-container">
+          <div class="passport-map">
+            <div id="map"></div>
+          </div>
+          <% if (showLocationPrompt) { %>
+            <script src="/js/profile-location.js"></script>
+            <% } %>
 
-    <form action="/profile" method="POST" enctype="multipart/form-data">
+              <div class="passport-header">
+                <div class="passport-title-line">
+                  <span class="passport-title">PASSPORT</span>
+                  <span id="location" data-country="">
+                    <span id="country-code">XX</span>
+                    <span id="flag-emoji"></span>
+                  </span>
+                </div>
+              </div>
 
-    <div class="mb-3">
-      <label class="form-label">Name</label>
-      <input type="text" class="form-control" name="name" value="<%= user.name %>" readonly>
-    </div>
+              <form action="/profile" method="POST" enctype="multipart/form-data" id="profileForm"
+                class="passport-body">
+                <div class="photo-section text-center mb-3">
+                  <img id="profilePreview" src="<%= profilePicUrl  || '/svgs/person.svg' %>" alt="Profile Picture" />
+                  <label for="avatarInput" class="photo-upload-btn">Choose File</label>
+                  <input type="file" name="profilePic" accept="image/png, image/jpeg" id="avatarInput"
+                    style="display: none;" />
+                  <button type="button" id="generateIconBtn" class="btn-glow mt-2">
+                    ✨ Generate Icon
+                  </button>
+                </div>
 
-    <div class="mb-3">
-      <label class="form-label">Email</label>
-      <input type="email" class="form-control" name="email" value="<%= user.email %>" readonly>
-    </div>
+                <div class="info-section">
+                  <!-- Full Name -->
+                  <!-- First Name -->
+                  <div>
+                    <div class="info-label">First Name</div>
+                    <input type="text" class="form-control" name="firstName" id="firstName"
+                      value="<%= user.firstName || '' %>" required />
+                  </div>
 
-    <div class="mb-3">
-      <label class="form-label">Username</label>
-      <input type="text" class="form-control" name="username" value="<%= user.username || '' %>" required>
-    </div>
-
-    <div class="mb-3" type="hidden">
-      <label class="form-label">Location:</label>
-      <h5 id="location"><i class="bi bi-geo-alt-fill text-danger me-2"></i><span id="flag-emoji"></span> Detecting...</h5>
-    </div>
-
-    <div class="mb-3">
-      <label class="form-label">Native Language</label>
-      <select name="nativeLanguage" class="form-select language-dropdown" required>
-        <option <%= !user.nativeLanguage ? 'selected' : '' %>>Choose</option>
-        <% languages.forEach(lang => { %>
-          <option value="<%= lang %>" <%= user.nativeLanguage === lang ? 'selected' : '' %>><%= lang %></option>
-        <% }) %>
-      </select>
-    </div>
-
-    <div class="mb-3">
-      <label class="form-label">Language You Want To Learn</label>
-      <select name="targetLanguage" class="form-select language-dropdown" required>
-        <option disabled <%= !user.targetLanguage ? 'selected' : '' %>>Choose...</option>
-        <% languages.forEach(lang => { %>
-          <option value="<%= lang %>" <%= user.targetLanguage === lang ? 'selected' : '' %>><%= lang %></option>
-        <% }) %>
-      </select>
-    </div>
-
-    <div class="mb-3">
-      <label class="form-label">Birthday</label>
-      <input type="text" id="birthdateInput" name="birthdate" class="form-control"
-             value="<%= user.birthdate ? user.birthdate.toISOString().split('T')[0] : '' %>"
-             placeholder="YYYY-MM-DD" />
-    </div>
-    <div class="mb-4">
-      <label class="form-label">Location Map</label>
-      <div id="map" class="mb-3"></div>
-    </div>
-    
-    <input type="hidden" id="lat" name="lat" value="<%= user.location ? user.location.lat : '' %>" />
-    <input type="hidden" id="lng" name="lng" value="<%= user.location ? user.location.lng : '' %>" />
-    
-    <input type="hidden" name="shareLocation" value="on" />
-
-      <div class="mb-4">
-    <label class="form-label d-block">Change Profile Picture</label>
-    <div class="d-flex align-items-center gap-2">
-      <input 
-        type="file"
-        id="profilePicInput" 
-        name="profilePic" 
-        accept="image/png, image/jpeg" 
-        class="form-control" 
-      />
-    </div>
-      
-   </div>
-   </form>
-   
-   <button 
-        type="button" 
-        id="generateIconBtn" 
-        class="btn btn-outline-secondary" >Generate Icon</button>
-
-      
-
-    <!-- hidden prompt + action -->
-    <div 
-      id="generatePromptContainer" 
-      class="mt-2" 
-      style="display: none;">
-      <input 
-        type="text" 
-        id="avatarPromptInput" 
-        class="form-control mb-2" 
-        placeholder="Describe your icon (e.g. 'smiling cartoon avatar, pastel')" />
-      <button 
-        type="button" 
-        id="createIconBtn" 
-        class="btn btn-primary"
-      >Create Icon</button>
-    </div>
-
-   </form>
-    
+                  <!-- Last Name -->
+                  <div>
+                    <div class="info-label">Last Name</div>
+                    <input type="text" class="form-control" name="lastName" id="lastName"
+                      value="<%= user.lastName || '' %>" required />
+                  </div>
 
 
-    <div class="mb-4">
-      <label class="form-label">Preview</label><br />
-      <img id="profilePreview" src="<%= user.profilePic || '/svgs/person.svg' %>" alt="Profile Picture"
-           style="width: 150px; height: 150px; object-fit: cover; border-radius: 12px;" />
-    </div>
+                  <!-- Email -->
+                  <div>
+                    <div class="info-label">Email</div>
+                    <input type="email" class="form-control" name="email" value="<%= user.email %>" readonly />
+                  </div>
 
-    <button type="submit" class="btn btn-success">Save Profile</button>
-    <form action="/logout" method="GET" style="position: absolute; bottom: 100px; right: 20px;">
-    <button class="btn btn-outline-danger btn-sm">Logout</button>
-  </form>
-  <img id="avatarDisplay"
-     src="<%= user.profilePic || '/svgs/person.svg' %>"
-     alt="Your avatar"
-     width="150" height="150"
-     class="rounded-circle mt-3" />
-  
-  <!-- Scripts -->
+                  <!-- Username -->
+                  <div>
+                    <div class="info-label">Username</div>
+                    <input type="text" class="form-control" name="username" id="username"
+                      value="<%= user.username || '' %>" required />
+                  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="/js/profile.js"></script>
-  <script src="/js/avatar-client.js"></script>
+                  <!-- Native Language -->
+                  <div>
+                    <div class="info-label">Native Language</div>
+                    <select name="nativeLanguage" class="form-select" id="nativeLanguage" required>
+                      <option <%=!user.nativeLanguage ? 'selected' : '' %>>
+                        Choose
+                      </option>
+                      <% languages.forEach((lang)=> { %>
+                        <option value="<%= lang %>" <%=user.nativeLanguage===lang ? 'selected' : '' %>
+                          >
+                          <%= lang %>
+                        </option>
+                        <% }) %>
+                    </select>
+                  </div>
 
-  <%- include('templates/navbar', { activeTab: 'messages' }) %>
-</body>
+                  <!-- Target Language -->
+                  <div>
+                    <div class="info-label">Language Want To Learn</div>
+                    <select name="targetLanguage" class="form-select" id="targetLanguage" required>
+                      <option disabled <%=!user.targetLanguage ? 'selected' : '' %>>
+                        Choose
+                      </option>
+                      <% languages.forEach((lang)=> { %>
+                        <option value="<%= lang %>" <%=user.targetLanguage===lang ? 'selected' : '' %>
+                          >
+                          <%= lang %>
+                        </option>
+                        <% }) %>
+                    </select>
+                  </div>
+
+                  <!-- Birthdate -->
+                  <div>
+                    <div class="info-label">Date of Birth</div>
+                    <input type="text" id="birthdateInput" name="birthdate" class="form-control" value="<%= user.birthdate
+              ? user.birthdate.toISOString().split('T')[0]
+              : '' %>" placeholder="YYYY-MM-DD" />
+                  </div>
+                </div>
+
+                <input type="hidden" id="lat" name="lat" value="<%= user.location ? user.location.lat : '' %>" />
+                <input type="hidden" id="lng" name="lng" value="<%= user.location ? user.location.lng : '' %>" />
+                <input type="hidden" name="shareLocation" value="on" />
+
+                <div class="passport-code" id="passportCode"></div>
+              </form>
+        </div>
+
+        <<div class="btn-wrapper text-center mt-3">
+          <button type="submit" form="profileForm" class="btn btn-success">
+            Save Profile
+          </button>
+          <a href="/logout" class="btn btn-outline-danger ms-2">Logout</a>
+          </div>
+
+          <% if (!user.disableIntroVideo) { %>
+            <div id="videoOverlay" style="
+        position: fixed;
+        top: 60px;
+        bottom: 65px;
+        left: 0;
+        right: 0;
+        z-index: 9999;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: auto;
+      ">
+              <video id="passportIntro" autoplay muted playsinline
+                style="width: 100%; height: 100%; object-fit: cover;">
+                <source src="/vid/Passport-opening-animation.mp4" type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            </div>
+            <script>
+              document.addEventListener("DOMContentLoaded", () => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const isUpdate = urlParams.get("updated") === "true";
+
+                const video = document.getElementById("passportIntro");
+                const overlay = document.getElementById("videoOverlay");
+
+                if (isUpdate) {
+                  if (overlay) overlay.style.display = "none";
+                  document.body.style.overflow = "";
+                  return;
+                }
+
+                document.body.style.overflow = "hidden";
+
+                video.onended = () => {
+                  overlay.style.display = "none";
+                  document.body.style.overflow = "";
+                };
+
+                overlay.addEventListener("click", () => {
+                  video.pause();
+                  overlay.style.display = "none";
+                  document.body.style.overflow = "";
+                });
+              });
+            </script>
+            <% } %>
+
+              <!-- Scripts -->
+              <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+              <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+              <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+              <script src="/js/avatar-client.js"></script>
+              <script src="/js/profile.js"></script>
+              <script>
+                flatpickr("#birthdateInput", {
+                  dateFormat: "Y-m-d",
+                  maxDate: "today",
+                });
+
+                document
+                  .getElementById("avatarInput")
+                  .addEventListener("change", function (e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = function () {
+                      document.getElementById("profilePreview").src =
+                        reader.result;
+                    };
+                    reader.readAsDataURL(file);
+                  });
+
+                function flagFromCode(code) {
+                  return code
+                    .toUpperCase()
+                    .split("")
+                    .map((c) =>
+                      String.fromCodePoint(127397 + c.charCodeAt())
+                    )
+                    .join("");
+                }
+
+                function updatePassportCode() {
+                  const firstName = document.getElementById("firstName")?.value.toUpperCase() || "";
+                  const lastName = document.getElementById("lastName")?.value.toUpperCase() || "";
+                  const fullName = `${firstName} ${lastName}`.trim();
+                  const user =
+                    document.getElementById("username")?.value.toUpperCase() ||
+                    "";
+                  const native =
+                    document.getElementById("nativeLanguage")?.value.toUpperCase() ||
+                    "";
+                  const target =
+                    document.getElementById("targetLanguage")?.value.toUpperCase() ||
+                    "";
+                  const countryCode =
+                    document.getElementById("country-code")?.dataset?.country
+                      ?.toUpperCase() || "XX";
+                  const pad = (txt, len = 15) =>
+                    (txt + "<<<<<<<<<<<<<<<<<<<<<<<<<<").slice(0, len);
+                  const line1 = `<<${pad(user)}<<<<<<<<<<${pad(
+                    fullName
+                  )}<<<<<<<<<<<<<<<<<<<<<`;
+                  const line2 = `<<<<<<<<<<<<<${pad(
+                    target
+                  )}<<<<<<<<<<${pad(native)}<<<<<<<<<<`;
+                  document.getElementById("passportCode").innerText = `
+${line1}
+${line2}`;
+                }
+
+                function toggleFilledClass(input) {
+                  if (input && input.value.trim()) {
+                    input.classList.add("filled");
+                  } else {
+                    input.classList.remove("filled");
+                  }
+                }
+
+                document.addEventListener("DOMContentLoaded", () => {
+                  updatePassportCode();
+                  document
+                    .querySelectorAll("input, select")
+                    .forEach((el) => {
+                      toggleFilledClass(el);
+                      el.addEventListener("input", () => {
+                        toggleFilledClass(el);
+                        updatePassportCode();
+                      });
+                      el.addEventListener("change", () => {
+                        toggleFilledClass(el);
+                        updatePassportCode();
+                      });
+                    });
+                });
+
+
+                // After other SweetAlert imports or inside DOMContentLoaded
+                Swal.mixin({
+                  customClass: {
+                    popup: 'rounded-4 border-0 shadow-lg',
+                    confirmButton: 'btn btn-primary rounded-pill px-4',
+                    cancelButton: 'btn btn-outline-secondary rounded-pill px-4',
+                    denyButton: 'btn btn-outline-danger rounded-pill px-4'
+                  },
+                  buttonsStyling: false
+                });
+
+              </script>
+              <%- include("templates/navbar", { activeTab: "profile" }) %>
+                </div> <!-- passport-container -->
+      </main>
+
+  </body>
+
 </html>

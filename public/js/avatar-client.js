@@ -1,52 +1,75 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const showBtn          = document.getElementById('generateIconBtn');
-  const promptContainer  = document.getElementById('generatePromptContainer');
-  const promptInput      = document.getElementById('avatarPromptInput');
-  const createBtn        = document.getElementById('createIconBtn');
-  const avatarImg        = document.getElementById('avatarDisplay');
+  const showBtn    = document.getElementById('generateIconBtn');
+  const avatarImg  = document.getElementById('avatarDisplay');
+  const previewImg = document.getElementById('profilePreview');
 
-  // show the input when “Generate Icon” is clicked
-  showBtn.addEventListener('click', () => {
-    promptContainer.style.display = 'block';
-    promptInput.focus();
-  });
+  showBtn.addEventListener('click', async () => {
+    const { value: prompt } = await Swal.fire({
+      title: 'Describe Your Avatar',
+      input: 'text',
+      inputPlaceholder: 'e.g. smiling cartoon fox with glasses',
+      background: '#fff url(/images/trees.png)',
+      backdrop: `
+        rgba(0,0,123,0.4)
+        url("/images/nyan-cat.gif")
+        left top
+        no-repeat
+      `,
+      confirmButtonText: 'Generate Icon',
+      showCancelButton: true,
+      inputAttributes: {
+        autocapitalize: 'off'
+      }
+    });
 
-  
-  createBtn.addEventListener('click', async () => {
-    const userPrompt = promptInput.value.trim();
-    if (!userPrompt) return alert('Please describe your avatar.');
+    if (!prompt) return;
 
-    createBtn.disabled    = true;
-    createBtn.textContent = 'Generating…';
+    Swal.fire({
+      title: 'Generating...',
+      text: 'Your icon is being generated. Please wait!',
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading()
+    });
 
     try {
-      // 1) Get the JSON seed+options from your describe endpoint
       const res = await fetch('/api/avatar/describe', {
-        method:  'POST',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ prompt: userPrompt })
+        body: JSON.stringify({ prompt })
       });
+
       if (!res.ok) throw new Error(`Status ${res.status}`);
       const { seed, backgroundColor, hairColor, accessoriesProbability } = await res.json();
 
-      // 2) Build the DiceBear URL with all those parameters
       const params = new URLSearchParams({
         seed,
         backgroundColor,
         hairColor,
         accessoriesProbability: String(accessoriesProbability)
       });
+
       const url = `https://api.dicebear.com/9.x/avataaars/svg?${params.toString()}`;
 
-      // 3) Swap in the new avatar
+      // Update both profile preview and avatar display
       avatarImg.src = url;
+      previewImg.src = url;
+
+      Swal.fire({
+        title: 'Avatar Created!',
+        imageUrl: url,
+        imageAlt: 'Your generated avatar',
+        confirmButtonText: 'Use This'
+      });
     } catch (err) {
-      console.error('Avatar error:', err);
-      alert('Could not generate avatar. See console.');
-    } finally {
-      createBtn.disabled    = false;
-      createBtn.textContent = 'Create Icon';
+      console.error('Avatar generation failed:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'Something went wrong generating your avatar!'
+      });
     }
   });
 });
+
+
 

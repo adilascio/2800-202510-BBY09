@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= chatId.replace(currentUser, '').replace('_','') %> – Chat</title>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="/css/index.css" />
+  <style>
+    :root {
+      --accent-cyan: #17caff;
+      --accent-orange: #ffa500;
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to bottom, #ffffff, #ffa500) no-repeat fixed;
+      background-size: 100% 100%;
+      font-family: sans-serif;
+      padding-top: 56px;   /* header height */
+      padding-bottom: 56px;/* input bar height */
+      overflow: hidden;
+    }
+    nav.chat-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 56px;
+      background: #fff;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 .75rem;
+      z-index: 1000;
+    }
+    .btn-back {
+      background: none;
+      border: none;
+      padding: .25rem;
+    }
+    .chat-title {
+      flex: 1;
+      text-align: center;
+      font-weight: bold;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin: 0;
+    }
+    .chat-messages {
+      position: absolute;
+      top: 56px;
+      bottom: 56px;
+      left: 0; right: 0;
+      padding: 1rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: .75rem;
+    }
+    .chat-message {
+      max-width: 80%;
+      padding: .75rem 1rem;
+      border-radius: 1rem;
+      word-break: break-word;
+    }
+    .chat-message.user {
+      background: var(--accent-cyan);
+      color: #fff;
+      margin-left: auto;
+      text-align: right;
+    }
+    .chat-message.friend {
+      background: var(--accent-orange);
+      color: #000;
+      margin-right: auto;
+      text-align: left;
+    }
+    .chat-message .meta {
+      font-size: .75rem;
+      color: rgba(0,0,0,0.6);
+      margin-top: .25rem;
+    }
+    .chat-input {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      display: flex;
+      padding: .5rem 1rem;
+      background: #fff;
+      border-top: 1px solid #ccc;
+    }
+    .chat-input input {
+      flex: 1;
+      padding: .5rem 1rem;
+      border-radius: 2rem;
+      border: 1px solid #ccc;
+      outline: none;
+    }
+    .chat-input button {
+      margin-left: .5rem;
+      padding: .5rem 1rem;
+      border-radius: 2rem;
+      background: var(--accent-cyan);
+      border: none;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Chat header -->
+  <nav class="chat-header">
+    <button class="btn-back" onclick="location.href='/messages'" aria-label="Back">
+      <img src="/svgs/arrow.svg" width="24" height="24" alt="Back"/>
+    </button>
+    <h5 class="chat-title"><%= chatId.replace(currentUser, '').replace('_','') %></h5>
+    <div style="width:32px"></div>
+  </nav>
+
+  <!-- Messages -->
+  <div class="chat-messages" id="chatBox"></div>
+
+  <!-- Input bar -->
+  <form id="chatForm" class="chat-input">
+    <input type="text" id="chatInput" placeholder="Type a message…" autocomplete="off" required />
+    <button type="submit"><i class="bi bi-send-fill"></i></button>
+  </form>
+
+  <!-- Scripts -->
+  <script>
+    const chatId = "<%= chatId %>";
+    const currentUser = "<%= currentUser %>";
+    const chatBox = document.getElementById('chatBox');
+    const chatForm = document.getElementById('chatForm');
+    const chatInput = document.getElementById('chatInput');
+
+    // Render messages
+    async function pollMessages() {
+      const res = await fetch(`/chat/${chatId}/messages`);
+      const messages = await res.json();
+
+      chatBox.innerHTML = messages.map(msg => `
+        <div class="chat-message ${msg.user === currentUser ? 'user' : 'friend'}">
+          <div class="msg">${msg.text}</div>
+          <div class="meta">${msg.user}</div>
+        </div>
+      `).join('');
+
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Send message via AJAX
+    chatForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = chatInput.value.trim();
+      if (!text) return;
+
+      await fetch('/send-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, chatId })
+      });
+
+      chatInput.value = '';
+    });
+
+    setInterval(pollMessages, 1500);
+    pollMessages();
+  </script>
+
+</body>
+
+</html>
