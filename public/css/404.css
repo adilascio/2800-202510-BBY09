@@ -1,17 +1,16 @@
-/* Accent palette */
-    :root {
+:root {
       --accent-cyan: #17caff;
       --accent-cyan-dark: #0dbdcf;
     }
-
-    /* Page background: white → orange */
-    body {
+    html, body {
+      height: 100%;
       margin: 0;
+    }
+    body {
+      /* Continuous white→orange gradient */
       background: linear-gradient(to bottom, #ffffff, #ffa500) no-repeat fixed;
       background-size: 100% 100%;
     }
-
-    /* Soft gradient utility */
     .gradient-soft {
       background: linear-gradient(
         to bottom right,
@@ -19,8 +18,6 @@
         #e6f7ff
       ) !important;
     }
-
-    /* Frosted-glass card */
     .card-transparent {
       background-color: rgba(255, 255, 255, 0.5) !important;
       backdrop-filter: blur(8px) !important;
@@ -28,8 +25,9 @@
       border-radius: 0.5rem !important;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
     }
-
-    /* Cyan button variant */
+    .text-accent {
+      color: var(--accent-cyan) !important;
+    }
     .btn-accent {
       background-color: var(--accent-cyan) !important;
       border-color: var(--accent-cyan) !important;
@@ -38,37 +36,4 @@
     .btn-accent:hover {
       background-color: var(--accent-cyan-dark) !important;
       border-color: var(--accent-cyan-dark) !important;
-    }
-
-    /* Cyan outline button */
-    .btn-outline-accent {
-      color: var(--accent-cyan) !important;
-      border-color: var(--accent-cyan) !important;
-    }
-    .btn-outline-accent:hover {
-      background-color: var(--accent-cyan) !important;
-      color: #fff !important;
-    }
-
-    /* Accent text helper */
-    .text-accent {
-      color: var(--accent-cyan) !important;
-    }
-
-    /* Tighten spacing inside friend-cards */
-    .friend-card-wrapper {
-      padding: 0.75rem;
-    }
-    .friend-avatar {
-      width: 48px;
-      height: 48px;
-      object-fit: cover;
-      border-radius: 50%;
-      margin-right: 0.75rem;
-    }
-    .friend-info h6 {
-      margin: 0;
-    }
-    .friend-info small {
-      color: #666;
     }
